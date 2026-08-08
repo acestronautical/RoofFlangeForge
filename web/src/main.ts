@@ -8,7 +8,7 @@ const MM_PER_IN = 25.4;
 type Unit = "in" | "mm";
 
 const form = document.getElementById("params") as HTMLFormElement;
-const unitsSelect = form.elements.namedItem("units") as HTMLSelectElement;
+const unitsSelect = form.elements.namedItem("units") as HTMLInputElement;
 const shapeSelect = form.elements.namedItem("shape") as HTMLSelectElement;
 const roofProfileSelect = form.elements.namedItem("roof_profile") as HTMLSelectElement;
 const renderBtn = document.getElementById("render") as HTMLButtonElement;
@@ -52,6 +52,23 @@ function stopRenderProgress(): void {
 }
 
 // Units toggle --------------------------------------------------------------
+// The hidden `units` input is the source of truth; the header segmented
+// control just flips its value and fires `change` so the rest of the app
+// (unit conversion, step swap) reacts normally.
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".unit-toggle button")) {
+    btn.addEventListener("click", () => {
+        const next = btn.dataset.unit as Unit;
+        if (unitsSelect.value === next) return;
+        unitsSelect.value = next;
+        unitsSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+}
+function syncUnitToggle(unit: Unit): void {
+    document.querySelectorAll<HTMLButtonElement>(".unit-toggle button").forEach((btn) => {
+        btn.setAttribute("aria-checked", btn.dataset.unit === unit ? "true" : "false");
+    });
+}
+syncUnitToggle(currentUnit);
 // Per-field spinner increments in inches. Missing entries fall back to 0.1
 // in / 1 mm. Note: `step` only controls the up/down arrows and validity --
 // users can always type any value; the form uses `novalidate` so step-off
@@ -103,6 +120,7 @@ unitsSelect.addEventListener("change", () => {
     });
     currentUnit = next;
     applyStepsForUnit(currentUnit);
+    syncUnitToggle(currentUnit);
 });
 
 // Bolt-holes checkbox controls visibility of its sub-fields.

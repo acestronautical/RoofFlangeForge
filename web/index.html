@@ -13,6 +13,10 @@
                 <h1><a href="https://github.com/acestronautical/RoofFlangeForge" target="_blank" rel="noopener">Roof Flange Forge</a></h1>
                 <p>Generate a printable flange adapter for a ribbed sheet-metal roof.</p>
             </div>
+            <div class="unit-toggle" role="radiogroup" aria-label="Units">
+                <button type="button" data-unit="in" role="radio" aria-checked="true">in</button>
+                <button type="button" data-unit="mm" role="radio" aria-checked="false">mm</button>
+            </div>
             <div class="header-actions">
                 <button type="button" id="theme" class="icon-btn" title="Toggle light/dark" aria-label="Toggle light/dark">
                     <svg class="theme-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -101,16 +105,7 @@
         <main>
             <section class="controls">
                 <form id="params" novalidate>
-                    <fieldset>
-                        <legend>Units</legend>
-                        <label>
-                            Enter values in
-                            <select name="units">
-                                <option value="in" selected>Inches</option>
-                                <option value="mm">Millimeters</option>
-                            </select>
-                        </label>
-                    </fieldset>
+                    <input type="hidden" name="units" value="in" />
 
                     <fieldset>
                         <legend>Shape</legend>
