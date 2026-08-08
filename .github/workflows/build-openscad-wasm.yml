@@ -1,0 +1,81 @@
+name: Build openscad-wasm from main
+
+# Manually triggered from the Actions tab. Fetches the openscad/openscad-wasm
+# repo at the current `main`, builds it inside Docker (Ubuntu runners already
+# have Docker and gmake), and both uploads the artifacts and opens a PR that
+# drops them into web/public/openscad/ so upgrading is a one-click review.
+on:
+    workflow_dispatch:
+        inputs:
+            openscad_wasm_ref:
+                description: Ref of openscad/openscad-wasm to build
+                required: false
+                default: main
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out this repo
+              uses: actions/checkout@v4
+
+            - name: Check out openscad-wasm
+              uses: actions/checkout@v4
+              with:
+                  repository: openscad/openscad-wasm
+                  ref: ${{ inputs.openscad_wasm_ref }}
+                  path: openscad-wasm
+                  submodules: recursive
+
+            - name: Build openscad-wasm
+              working-directory: openscad-wasm
+              # The Makefile does a Docker-based Emscripten build; the runner
+              # comes with Docker preinstalled and `make` is GNU make, so no
+              # extra setup is needed.
+              run: make all
+
+            - name: Collect artifacts
+              run: |
+                  mkdir -p artifacts/openscad
+                  cp openscad-wasm/dist/openscad.js artifacts/openscad/
+                  cp openscad-wasm/dist/openscad.wasm artifacts/openscad/
+                  cp openscad-wasm/dist/openscad.wasm.js artifacts/openscad/
+                  cp openscad-wasm/dist/openscad.d.ts artifacts/openscad/ 2>/dev/null || true
+                  cp openscad-wasm/dist/openscad.wasm.d.ts artifacts/openscad/ 2>/dev/null || true
+                  cp openscad-wasm/dist/files.d.ts artifacts/openscad/ 2>/dev/null || true
+                  ls -lh artifacts/openscad
+
+            - name: Upload as workflow artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: openscad-wasm-${{ inputs.openscad_wasm_ref }}
+                  path: artifacts/openscad/
+
+            - name: Copy into web/public/openscad/
+              run: |
+                  rm -f web/public/openscad/openscad.js \
+                        web/public/openscad/openscad.wasm \
+                        web/public/openscad/openscad.wasm.js \
+                        web/public/openscad/openscad.d.ts \
+                        web/public/openscad/openscad.wasm.d.ts \
+                        web/public/openscad/files.d.ts
+                  cp -a artifacts/openscad/. web/public/openscad/
+
+            - name: Open PR
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  branch: chore/openscad-wasm-upgrade
+                  title: "chore: upgrade openscad-wasm to ${{ inputs.openscad_wasm_ref }}"
+                  body: |
+                      Rebuilt `openscad-wasm` from `${{ inputs.openscad_wasm_ref }}`
+                      and dropped the fresh artifacts into `web/public/openscad/`.
+
+                      Full artifacts also available as the workflow's uploaded artifact
+                      (`openscad-wasm-${{ inputs.openscad_wasm_ref }}`).
+
+                      Merge to upgrade production.
+                  commit-message: "chore: upgrade openscad-wasm to ${{ inputs.openscad_wasm_ref }}"
