@@ -37,7 +37,7 @@ main_thick  = roof_depth;                 // thickness of this piece above/below
 // Position of the opening center on the roof and which side the adapter mounts on
 // -----------------------------------------------------------------------------
 flange_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
-side         = "top";                     // "top" (outside of roof) or "bottom" (inside)
+side         = "top";                     // "top" (outside), "bottom" (inside), or "both" (both sides side by side)
 
 // -----------------------------------------------------------------------------
 // Bolt holes (opt-in). See bolt_pattern.scad.
@@ -54,20 +54,30 @@ $fn    = 240;
 IN2MM  = 25.4;
 
 // -----------------------------------------------------------------------------
-// Derived (see circular_adapter.scad for the rationale on the Z math)
+// Derived cutter extents (Z range computed per-side inside the module).
 // -----------------------------------------------------------------------------
-z_top  = (side == "top") ? +main_thick    : -sheet_thickness;
-z_bot  = (side == "top") ? -roof_depth    : -main_thick - roof_depth - sheet_thickness;
 cut_xy = 2 * max(outer_x, outer_y);
 cut_z  = 4 * roof_depth;
 
-scale([IN2MM, IN2MM, IN2MM]) rectangular_adapter();
+scale([IN2MM, IN2MM, IN2MM]) render_all();
 
 // =============================================================================
 // Modules
 // =============================================================================
 
-module rectangular_adapter() {
+module render_all() {
+    if (side == "both") {
+        gap = max(outer_x, outer_y) * 1.1;
+        translate([-gap/2, 0, 0]) rectangular_adapter("top");
+        translate([+gap/2, 0, 0]) rectangular_adapter("bottom");
+    } else {
+        rectangular_adapter(side);
+    }
+}
+
+module rectangular_adapter(s = side) {
+    z_top = (s == "top") ? +main_thick    : -sheet_thickness;
+    z_bot = (s == "top") ? -roof_depth    : -main_thick - roof_depth - sheet_thickness;
     difference() {
         translate([0, 0, z_bot])
             linear_extrude(height = z_top - z_bot)
@@ -75,7 +85,7 @@ module rectangular_adapter() {
                     square([outer_x, outer_y], center = true);
                     square([inner_x, inner_y], center = true);
                 }
-        roof_cutter();
+        roof_cutter(s);
         if (bolt_holes)
             rectangular_bolt_pattern(
                 outer_x     = outer_x,
@@ -88,7 +98,7 @@ module rectangular_adapter() {
     }
 }
 
-module roof_cutter() {
+module roof_cutter(s = side) {
     if (roof_profile == "corrugated")
         corrugated_roof_cutter(
             flange_offset_x = flange_offset_x,
@@ -96,7 +106,7 @@ module roof_cutter() {
             depth        = corr_depth,
             cut_xy       = cut_xy,
             cut_z        = cut_z,
-            side         = side,
+            side         = s,
             thickness    = sheet_thickness
         );
     else
@@ -104,7 +114,7 @@ module roof_cutter() {
             flange_offset_x = flange_offset_x,
             cut_xy       = cut_xy,
             cut_z        = cut_z,
-            side         = side,
+            side         = s,
             thickness    = sheet_thickness
         );
 }

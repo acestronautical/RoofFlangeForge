@@ -34,7 +34,7 @@ main_thick  = roof_depth;                 // thickness above/below the rib plate
 // Position on the roof and which side it mounts on
 // -----------------------------------------------------------------------------
 flange_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
-side         = "top";                     // "top" (outside of roof) or "bottom" (inside)
+side         = "top";                     // "top" (outside), "bottom" (inside), or "both" (both sides side by side)
 
 // -----------------------------------------------------------------------------
 // Bolt holes (opt-in). See bolt_pattern.scad.
@@ -51,25 +51,37 @@ $fn    = 240;
 IN2MM  = 25.4;
 
 // -----------------------------------------------------------------------------
-// Derived (see circular_adapter.scad for the rationale on the Z math)
+// Derived cutter extents (Z range computed per-side inside the module).
 // -----------------------------------------------------------------------------
-z_top  = (side == "top") ? +main_thick    : -sheet_thickness;
-z_bot  = (side == "top") ? -roof_depth    : -main_thick - roof_depth - sheet_thickness;
 cut_xy = 2 * max(strip_x, strip_y);
 cut_z  = 4 * roof_depth;
 
-scale([IN2MM, IN2MM, IN2MM]) strip();
+scale([IN2MM, IN2MM, IN2MM]) render_all();
 
 // =============================================================================
 // Modules
 // =============================================================================
 
-module strip() {
+module render_all() {
+    if (side == "both") {
+        // Strip is long in X; stack the two pieces along Y so the print bed
+        // layout stays compact.
+        gap = strip_y * 1.5;
+        translate([0, -gap/2, 0]) strip("top");
+        translate([0, +gap/2, 0]) strip("bottom");
+    } else {
+        strip(side);
+    }
+}
+
+module strip(s = side) {
+    z_top = (s == "top") ? +main_thick    : -sheet_thickness;
+    z_bot = (s == "top") ? -roof_depth    : -main_thick - roof_depth - sheet_thickness;
     difference() {
         translate([0, 0, z_bot])
             linear_extrude(height = z_top - z_bot)
                 square([strip_x, strip_y], center = true);
-        roof_cutter();
+        roof_cutter(s);
         if (bolt_holes)
             bolt_column_at(
                 strip_bolt_xs(),
@@ -115,7 +127,7 @@ function strip_bolt_xs() =
     : bolt_place == "every-other-indent" ? _every_other(_strip_indent_xs())
     : _strip_rib_xs();
 
-module roof_cutter() {
+module roof_cutter(s = side) {
     if (roof_profile == "corrugated")
         corrugated_roof_cutter(
             flange_offset_x = flange_offset_x,
@@ -123,7 +135,7 @@ module roof_cutter() {
             depth        = corr_depth,
             cut_xy       = cut_xy,
             cut_z        = cut_z,
-            side         = side,
+            side         = s,
             thickness    = sheet_thickness
         );
     else
@@ -131,7 +143,7 @@ module roof_cutter() {
             flange_offset_x = flange_offset_x,
             cut_xy       = cut_xy,
             cut_z        = cut_z,
-            side         = side,
+            side         = s,
             thickness    = sheet_thickness
         );
 }

@@ -265,7 +265,10 @@ function buildJob(): RenderJob {
     }
 
     const mount = flangeOffsetXInches(data) === 0 ? "rib-centered" : "indent-centered";
-    const face = overrides.side === '"top"' ? "topside" : "underside";
+    const face =
+        overrides.side === '"top"' ? "topside"
+        : overrides.side === '"bottom"' ? "underside"
+        : "both";
 
     if (shape === "circular") {
         overrides.ID = inches(data, "ID");
