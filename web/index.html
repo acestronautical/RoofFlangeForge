@@ -42,58 +42,58 @@
                         <div data-shape="circular">
                             <label>
                                 Inner diameter <span class="unit-suffix">(in)</span>
-                                <input type="number" name="ID" value="6.5" step="any" />
+                                <input type="number" name="ID" value="6.5" min="0" step="any" />
                             </label>
                             <label>
                                 Outer diameter <span class="unit-suffix">(in)</span>
-                                <input type="number" name="OD" value="10" step="any" />
+                                <input type="number" name="OD" value="10" min="0" step="any" />
                             </label>
                         </div>
 
                         <div data-shape="rectangular" hidden>
                             <label>
                                 Inner width X <span class="unit-suffix">(in)</span>
-                                <input type="number" name="inner_x" value="14" step="any" />
+                                <input type="number" name="inner_x" value="14" min="0" step="any" />
                             </label>
                             <label>
                                 Inner width Y <span class="unit-suffix">(in)</span>
-                                <input type="number" name="inner_y" value="14" step="any" />
+                                <input type="number" name="inner_y" value="14" min="0" step="any" />
                             </label>
                             <label>
                                 Outer width X <span class="unit-suffix">(in)</span>
-                                <input type="number" name="outer_x" value="15.5" step="any" />
+                                <input type="number" name="outer_x" value="15.5" min="0" step="any" />
                             </label>
                             <label>
                                 Outer width Y <span class="unit-suffix">(in)</span>
-                                <input type="number" name="outer_y" value="15.5" step="any" />
+                                <input type="number" name="outer_y" value="15.5" min="0" step="any" />
                             </label>
                         </div>
 
                         <div data-shape="strip" hidden>
                             <label>
                                 Length (across ribs) <span class="unit-suffix">(in)</span>
-                                <input type="number" name="strip_x" value="15.5" step="any" />
+                                <input type="number" name="strip_x" value="15.5" min="0" step="any" />
                             </label>
                             <label>
                                 Width (along ribs) <span class="unit-suffix">(in)</span>
-                                <input type="number" name="strip_y" value="3" step="any" />
+                                <input type="number" name="strip_y" value="3" min="0" step="any" />
                             </label>
                         </div>
 
                         <div data-shape="roof" hidden>
                             <label>
                                 Preview extent, half-width <span class="unit-suffix">(in)</span>
-                                <input type="number" name="preview_xy" value="12" step="any" />
+                                <input type="number" name="preview_xy" value="12" min="0" step="any" />
                             </label>
                             <label>
                                 Preview sheet thickness <span class="unit-suffix">(in)</span>
-                                <input type="number" name="preview_thickness" value="0.1" step="any" />
+                                <input type="number" name="preview_thickness" value="0.1" min="0" step="any" />
                             </label>
                         </div>
 
                         <label data-shape-only="circular rectangular strip">
                             Ring thickness <span class="unit-suffix">(in)</span>
-                            <input type="number" name="main_thick" value="0.5" step="any" />
+                            <input type="number" name="main_thick" value="0.5" min="0" step="any" />
                         </label>
                     </fieldset>
 
@@ -109,38 +109,38 @@
                         <div data-roof-profile="trapezoidal">
                             <label>
                                 Rib plateau width <span class="unit-suffix">(in)</span>
-                                <input type="number" name="rib_width" value="3.5" step="any" />
+                                <input type="number" name="rib_width" value="3.5" min="0" step="any" />
                             </label>
                             <label>
                                 Indent width at top <span class="unit-suffix">(in)</span>
-                                <input type="number" name="indent_top_w" value="2" step="any" />
+                                <input type="number" name="indent_top_w" value="2" min="0" step="any" />
                             </label>
                             <label>
                                 Indent width at floor <span class="unit-suffix">(in)</span>
-                                <input type="number" name="indent_bot_w" value="1.5" step="any" />
+                                <input type="number" name="indent_bot_w" value="1.5" min="0" step="any" />
                             </label>
                             <label>
                                 Indent depth <span class="unit-suffix">(in)</span>
-                                <input type="number" name="indent_depth" value="0.5" step="any" />
+                                <input type="number" name="indent_depth" value="0.5" min="0" step="any" />
                             </label>
                             <label>
                                 Corner radius at rib bends <span class="unit-suffix">(in)</span>
-                                <input type="number" name="corner_r" value="0.0625" step="any" />
+                                <input type="number" name="corner_r" value="0.0625" min="0" step="any" />
                             </label>
                         </div>
                         <div data-roof-profile="corrugated" hidden>
                             <label>
                                 Corrugation pitch (peak-to-peak) <span class="unit-suffix">(in)</span>
-                                <input type="number" name="corr_pitch" value="2.667" step="any" />
+                                <input type="number" name="corr_pitch" value="2.667" min="0" step="any" />
                             </label>
                             <label>
                                 Corrugation depth (peak-to-trough) <span class="unit-suffix">(in)</span>
-                                <input type="number" name="corr_depth" value="0.5" step="any" />
+                                <input type="number" name="corr_depth" value="0.5" min="0" step="any" />
                             </label>
                         </div>
                         <label data-shape-only="circular rectangular strip">
                             Sheet-metal thickness <span class="unit-suffix">(in)</span>
-                            <input type="number" name="sheet_thickness" value="0.032" step="any" />
+                            <input type="number" name="sheet_thickness" value="0.032" min="0" step="any" />
                         </label>
                     </fieldset>
 

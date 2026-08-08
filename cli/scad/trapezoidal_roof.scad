@@ -85,15 +85,13 @@ module trapezoidal_roof_cutter(
                     corner_r     = r,
                     cut_xy       = cut_xy,
                     cut_z        = cut_z,
-                side         = side
-            );
+                    side         = side
+                );
 }
 
 // The 2D cross-section of the cutter. Interior of the polygon = block material.
-// CCW winding is chosen so the roof surface bounds the interior on the correct
-// side; `offset(r=+r) offset(r=-r)` then rounds the CONVEX corners (the
-// rib-to-sidewall bends) in place, matching how stamped sheet metal actually
-// curves outward at those transitions.
+// The rib-to-sidewall bends are chamfered directly in the surface point list
+// (see trapezoidal_roof_surface_pts), so the polygon here is already smooth.
 module trapezoidal_roof_profile_2d(
     fan_offset_x,
     top_w,
@@ -112,7 +110,8 @@ module trapezoidal_roof_profile_2d(
         bot_w        = bot_w,
         depth        = depth,
         cut_xy       = cut_xy,
-        top_y        = top_y
+        top_y        = top_y,
+        r            = corner_r
     );
     n = len(surface_ltr);
 
@@ -126,36 +125,60 @@ module trapezoidal_roof_profile_2d(
             surface_ltr
         );
 
-    if (corner_r > 0)
-        offset(r = +corner_r) offset(r = -corner_r) polygon(pts);
-    else
-        polygon(pts);
+    polygon(pts);
 }
 
 // List of (X, Y) points that trace the roof's TOP surface across [-cut_xy, +cut_xy],
 // left to right, including the trapezoidal dip into every indent in range.
 // Y in the 2D plane will become Z after the caller's rotate([90,0,0]).
-function trapezoidal_roof_surface_pts(fan_offset_x, top_w, bot_w, depth, cut_xy, top_y) =
+// When r > 0, each rib bend is replaced by two chamfer points offset by r
+// along the two adjacent edges -- a straight-line chamfer of the corner.
+function trapezoidal_roof_surface_pts(fan_offset_x, top_w, bot_w, depth, cut_xy, top_y, r = 0) =
     let (
         n_max     = ceil(cut_xy / roof_pitch) + 1,
         indent_xs = [
             for (k = [-n_max : n_max])
                 let (ix = indent_center_x + k * roof_pitch - fan_offset_x)
-                if (abs(ix) <= cut_xy) ix
-        ]
-    )
-    concat(
-        [[-cut_xy, top_y]],
-        [ for (ix = indent_xs)
-            each [
-                [ix - top_w/2, top_y],              // left rib-to-sidewall bend  (convex)
-                [ix - bot_w/2, -depth],             // left sidewall-to-floor bend (concave)
-                [ix + bot_w/2, -depth],             // right sidewall-to-floor bend (concave)
-                [ix + top_w/2, top_y]               // right rib-to-sidewall bend  (convex)
-            ]
+                if (ix - top_w/2 >= -cut_xy && ix + top_w/2 <= cut_xy) ix
         ],
-        [[+cut_xy, top_y]]
+        sharp = concat(
+            [[-cut_xy, top_y]],
+            [ for (ix = indent_xs)
+                each [
+                    [ix - top_w/2, top_y],
+                    [ix - bot_w/2, -depth],
+                    [ix + bot_w/2, -depth],
+                    [ix + top_w/2, top_y]
+                ]
+            ],
+            [[+cut_xy, top_y]]
+        )
+    )
+    r > 0 ? chamfer_polyline(sharp, r) : sharp;
+
+// Replace each interior corner in a polyline with two chamfer points offset
+// by r along the two adjacent edges (clamped so the chamfer can't consume
+// more than 45% of either edge).
+function chamfer_polyline(pts, r) =
+    let (n = len(pts))
+    n < 3 ? pts : concat(
+        [pts[0]],
+        [ for (i = [1 : n-2]) each chamfer_corner(pts[i-1], pts[i], pts[i+1], r) ],
+        [pts[n-1]]
     );
+
+function chamfer_corner(a, b, c, r) =
+    let (
+        v_in  = a - b,
+        v_out = c - b,
+        d_in  = norm(v_in),
+        d_out = norm(v_out),
+        r_eff = min(r, d_in * 0.45, d_out * 0.45)
+    )
+    [
+        b + r_eff * v_in  / d_in,
+        b + r_eff * v_out / d_out
+    ];
 
 // =============================================================================
 // trapezoidal_roof_sheet(...)
@@ -198,7 +221,8 @@ module trapezoidal_roof_sheet_2d(fan_offset_x, top_w, bot_w, depth, cut_xy, shee
         bot_w        = bot_w,
         depth        = depth,
         cut_xy       = cut_xy,
-        top_y        = top_y
+        top_y        = top_y,
+        r            = corner_r
     );
     n = len(surface_ltr);
 
