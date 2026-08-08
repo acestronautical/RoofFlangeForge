@@ -14,6 +14,13 @@
 // =============================================================================
 
 include <trapezoidal_roof.scad>
+include <corrugated_roof.scad>
+
+// -----------------------------------------------------------------------------
+// Roof profile: which cross-section to conform the underside to
+// -----------------------------------------------------------------------------
+roof_profile = "trapezoidal";            // "trapezoidal" or "corrugated"
+roof_depth   = (roof_profile == "corrugated") ? corr_depth : indent_depth;
 
 // -----------------------------------------------------------------------------
 // Adapter shape
@@ -22,7 +29,7 @@ inner_x     = 14.000;                     // fan cutout size in X (across ribs)
 inner_y     = 14.000;                     // fan cutout size in Y (along ribs)
 outer_x     = 15.500;                     // overall X extent
 outer_y     = 15.500;                     // overall Y extent
-main_thick  = indent_depth;               // thickness of this piece above/below the rib plateau plane
+main_thick  = roof_depth;                 // thickness of this piece above/below the rib plateau plane
 
 // -----------------------------------------------------------------------------
 // Position of the fan center on the roof and which side the adapter mounts on
@@ -40,9 +47,9 @@ IN2MM  = 25.4;
 // Derived (see circular_adapter.scad for the rationale on the Z math)
 // -----------------------------------------------------------------------------
 z_top  = (side == "top") ? +main_thick    : -sheet_thickness;
-z_bot  = (side == "top") ? -indent_depth  : -main_thick - indent_depth - sheet_thickness;
+z_bot  = (side == "top") ? -roof_depth    : -main_thick - roof_depth - sheet_thickness;
 cut_xy = 2 * max(outer_x, outer_y);
-cut_z  = 4 * indent_depth;
+cut_z  = 4 * roof_depth;
 
 scale([IN2MM, IN2MM, IN2MM]) rectangular_adapter();
 
@@ -58,11 +65,27 @@ module rectangular_adapter() {
                     square([outer_x, outer_y], center = true);
                     square([inner_x, inner_y], center = true);
                 }
+        roof_cutter();
+    }
+}
+
+module roof_cutter() {
+    if (roof_profile == "corrugated")
+        corrugated_roof_cutter(
+            fan_offset_x = fan_offset_x,
+            pitch        = corr_pitch,
+            depth        = corr_depth,
+            cut_xy       = cut_xy,
+            cut_z        = cut_z,
+            side         = side,
+            thickness    = sheet_thickness
+        );
+    else
         trapezoidal_roof_cutter(
             fan_offset_x = fan_offset_x,
             cut_xy       = cut_xy,
             cut_z        = cut_z,
-            side         = side
+            side         = side,
+            thickness    = sheet_thickness
         );
-    }
 }
