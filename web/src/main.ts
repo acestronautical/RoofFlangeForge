@@ -10,6 +10,7 @@ type Unit = "in" | "mm";
 const form = document.getElementById("params") as HTMLFormElement;
 const unitsSelect = form.elements.namedItem("units") as HTMLSelectElement;
 const shapeSelect = form.elements.namedItem("shape") as HTMLSelectElement;
+const roofProfileSelect = form.elements.namedItem("roof_profile") as HTMLSelectElement;
 const renderBtn = document.getElementById("render") as HTMLButtonElement;
 const downloadBtn = document.getElementById("download") as HTMLButtonElement;
 const status = document.getElementById("status") as HTMLParagraphElement;
@@ -90,6 +91,20 @@ function syncShapeVisibility(): void {
 shapeSelect.addEventListener("change", syncShapeVisibility);
 syncShapeVisibility();
 
+// Show/hide fields that depend on the selected roof profile ------------------
+function syncRoofProfileVisibility(): void {
+    const profile = roofProfileSelect.value;
+    form.querySelectorAll<HTMLElement>("[data-roof-profile]").forEach((el) => {
+        const isThis = el.dataset.roofProfile === profile;
+        el.hidden = !isThis;
+        el.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
+            input.disabled = !isThis;
+        });
+    });
+}
+roofProfileSelect.addEventListener("change", syncRoofProfileVisibility);
+syncRoofProfileVisibility();
+
 // Collect params ------------------------------------------------------------
 type RenderJob = {
     scad: string;
@@ -106,31 +121,54 @@ function inches(data: FormData, name: string): number {
 
 function fanOffsetXInches(data: FormData): number {
     const mount = String(data.get("mount"));
+    if (mount !== "indent") return 0;
+    if (String(data.get("roof_profile")) === "corrugated") {
+        return inches(data, "corr_pitch") / 2;
+    }
     const ribW = inches(data, "rib_width");
     const indentW = inches(data, "indent_top_w");
-    return mount === "indent" ? ribW / 2 + indentW / 2 : 0;
+    return ribW / 2 + indentW / 2;
 }
 
-function buildJob(): RenderJob {
-    const data = new FormData(form);
-    const shape = String(data.get("shape"));
-
-    const overrides: Record<string, string | number> = {
+function roofOverrides(data: FormData): Record<string, string | number> {
+    const profile = String(data.get("roof_profile"));
+    if (profile === "corrugated") {
+        return {
+            roof_profile: '"corrugated"',
+            corr_pitch: inches(data, "corr_pitch"),
+            corr_depth: inches(data, "corr_depth"),
+        };
+    }
+    return {
+        roof_profile: '"trapezoidal"',
         rib_width: inches(data, "rib_width"),
         indent_top_w: inches(data, "indent_top_w"),
         indent_bot_w: inches(data, "indent_bot_w"),
         indent_depth: inches(data, "indent_depth"),
         corner_r: inches(data, "corner_r"),
     };
+}
+
+function buildJob(): RenderJob {
+    const data = new FormData(form);
+    const shape = String(data.get("shape"));
+    const profile = String(data.get("roof_profile"));
+
+    const overrides: Record<string, string | number> = roofOverrides(data);
 
     if (shape === "roof") {
         overrides.fan_offset_x = fanOffsetXInches(data);
         overrides.preview_xy = inches(data, "preview_xy");
         overrides.sheet_thickness = inches(data, "preview_thickness");
+        const previewScad =
+            profile === "corrugated"
+                ? "corrugated_roof_preview.scad"
+                : "trapezoidal_roof_preview.scad";
+        const mountLabel = fanOffsetXInches(data) === 0 ? "rib" : "indent";
         return {
-            scad: "trapezoidal_roof_preview.scad",
+            scad: previewScad,
             overrides,
-            outName: `roof_${fanOffsetXInches(data) === 0 ? "rib" : "indent"}-centered.stl`,
+            outName: `roof_${profile}_${mountLabel}-centered.stl`,
         };
     }
 

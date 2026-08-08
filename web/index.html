@@ -100,28 +100,47 @@
                     <fieldset>
                         <legend>Roof</legend>
                         <label>
-                            Rib plateau width <span class="unit-suffix">(in)</span>
-                            <input type="number" name="rib_width" value="3.5" step="any" />
+                            Profile
+                            <select name="roof_profile">
+                                <option value="trapezoidal">Trapezoidal ribs (stamped body panel)</option>
+                                <option value="corrugated">Corrugated (sinusoidal, e.g. barn tin)</option>
+                            </select>
                         </label>
-                        <label>
-                            Indent width at top <span class="unit-suffix">(in)</span>
-                            <input type="number" name="indent_top_w" value="2" step="any" />
-                        </label>
-                        <label>
-                            Indent width at floor <span class="unit-suffix">(in)</span>
-                            <input type="number" name="indent_bot_w" value="1.5" step="any" />
-                        </label>
-                        <label>
-                            Indent depth <span class="unit-suffix">(in)</span>
-                            <input type="number" name="indent_depth" value="0.5" step="any" />
-                        </label>
+                        <div data-roof-profile="trapezoidal">
+                            <label>
+                                Rib plateau width <span class="unit-suffix">(in)</span>
+                                <input type="number" name="rib_width" value="3.5" step="any" />
+                            </label>
+                            <label>
+                                Indent width at top <span class="unit-suffix">(in)</span>
+                                <input type="number" name="indent_top_w" value="2" step="any" />
+                            </label>
+                            <label>
+                                Indent width at floor <span class="unit-suffix">(in)</span>
+                                <input type="number" name="indent_bot_w" value="1.5" step="any" />
+                            </label>
+                            <label>
+                                Indent depth <span class="unit-suffix">(in)</span>
+                                <input type="number" name="indent_depth" value="0.5" step="any" />
+                            </label>
+                            <label>
+                                Corner radius at rib bends <span class="unit-suffix">(in)</span>
+                                <input type="number" name="corner_r" value="0.0625" step="any" />
+                            </label>
+                        </div>
+                        <div data-roof-profile="corrugated" hidden>
+                            <label>
+                                Corrugation pitch (peak-to-peak) <span class="unit-suffix">(in)</span>
+                                <input type="number" name="corr_pitch" value="2.667" step="any" />
+                            </label>
+                            <label>
+                                Corrugation depth (peak-to-trough) <span class="unit-suffix">(in)</span>
+                                <input type="number" name="corr_depth" value="0.5" step="any" />
+                            </label>
+                        </div>
                         <label data-shape-only="circular rectangular strip">
                             Sheet-metal thickness <span class="unit-suffix">(in)</span>
                             <input type="number" name="sheet_thickness" value="0.032" step="any" />
-                        </label>
-                        <label>
-                            Corner radius at rib bends <span class="unit-suffix">(in)</span>
-                            <input type="number" name="corner_r" value="0.0625" step="any" />
                         </label>
                     </fieldset>
 

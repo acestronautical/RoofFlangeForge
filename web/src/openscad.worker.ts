@@ -14,6 +14,8 @@ const SCAD_SOURCES = [
     "strip.scad",
     "trapezoidal_roof.scad",
     "trapezoidal_roof_preview.scad",
+    "corrugated_roof.scad",
+    "corrugated_roof_preview.scad",
 ] as const;
 
 let openScadFactoryPromise: Promise<any> | null = null;
