@@ -16,3 +16,6 @@ __pycache__/
 # Vite build output
 web/dist/
 web/node_modules/
+
+# electron-builder output
+web/release/

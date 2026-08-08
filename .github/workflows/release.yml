@@ -1,0 +1,61 @@
+name: Release desktop builds
+
+# Push a tag like v0.1.0 to cut a release. This builds Electron desktop
+# packages for macOS (dmg, x64 + arm64), Windows (nsis installer, x64), and
+# Linux (AppImage, x64), then attaches them to a GitHub Release for the tag.
+#
+# The web/GitHub Pages deploy stays on its own workflow (pages.yml); this one
+# is exclusively about desktop artifacts.
+
+on:
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                include:
+                    - os: macos-latest
+                      name: mac
+                    - os: windows-latest
+                      name: win
+                    - os: ubuntu-latest
+                      name: linux
+        runs-on: ${{ matrix.os }}
+        defaults:
+            run:
+                working-directory: web
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Install
+              run: npm ci
+
+            - name: Package
+              # electron-builder infers the platform from the runner OS, so
+              # `electron:dist` builds .dmg on macos, .exe on windows, and
+              # .AppImage on linux automatically. GH_TOKEN keeps it from
+              # trying to publish -- that's what the upload step does.
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: npm run electron:dist
+
+            - name: Upload artifacts to the Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      web/release/*.dmg
+                      web/release/*.exe
+                      web/release/*.AppImage
+                      web/release/*.blockmap
+                      web/release/latest*.yml
+                  fail_on_unmatched_files: false

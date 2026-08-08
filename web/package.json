@@ -1,21 +1,77 @@
 {
-  "name": "van-roof-fan-adapter",
+  "name": "roof-flange-forge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:electron": "cross-env ELECTRON=1 vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "electron:dev": "cross-env ELECTRON_DEV=1 electron .",
+    "electron:pack": "npm run build:electron && electron-builder --dir",
+    "electron:dist": "npm run build:electron && electron-builder"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
     "@types/three": "^0.185.4",
+    "cross-env": "^10.1.0",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8",
     "typescript": "^7.0.2",
     "vite": "^8.2.1"
   },
   "dependencies": {
     "three": "^0.185.1"
+  },
+  "build": {
+    "appId": "com.acestronautical.roofflangeforge",
+    "productName": "Roof Flange Forge",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**",
+      "dist/**",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "category": "Graphics",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  },
+  "allowScripts": {
+    "electron@34.5.8": true
   }
 }
