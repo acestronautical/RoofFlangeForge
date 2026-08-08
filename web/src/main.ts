@@ -349,6 +349,10 @@ function serializeParams(): URLSearchParams {
             || !el.name
             || el.disabled
         ) continue;
+        if (el instanceof HTMLInputElement && el.type === "checkbox") {
+            if (el.checked) params.set(el.name, "1");
+            continue;
+        }
         params.set(el.name, el.value);
     }
     return params;
@@ -382,6 +386,11 @@ function applyParamsFromUrl(): void {
     for (const [name, value] of params) {
         if (priority.includes(name)) continue;
         const el = form.elements.namedItem(name);
+        if (el instanceof HTMLInputElement && el.type === "checkbox") {
+            el.checked = value === "1" || value === "on" || value === "true";
+            el.dispatchEvent(new Event("change", { bubbles: true }));
+            continue;
+        }
         if (el instanceof HTMLSelectElement || el instanceof HTMLInputElement) {
             el.value = value;
         }
