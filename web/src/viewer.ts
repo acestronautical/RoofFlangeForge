@@ -167,7 +167,7 @@ export class StlViewer {
     private frameMesh(size: THREE.Vector3): void {
         const maxDim = Math.max(size.x, size.y, size.z);
         const fov = (this.camera.fov * Math.PI) / 180;
-        const dist = (maxDim / 2 / Math.tan(fov / 2)) * 2.5;
+        const dist = (maxDim / 2 / Math.tan(fov / 2)) * 1.4;
         this.camera.position.set(dist, dist * 0.75, dist);
         this.camera.lookAt(0, 0, 0);
         this.controls.target.set(0, 0, 0);
