@@ -2,10 +2,10 @@
 // trapezoidal_roof.scad
 //
 // Parametric model of a periodic sheet-metal roof whose cross-section is a
-// series of flat rib plateaus separated by trapezoidal indent valleys. The
-// defaults match the example ribbed sheet-metal roof, but every dimension is
-// a top-level variable and can be overridden with OpenSCAD's -D flag, so this
-// file can drive adapter designs for any roof with the same profile family.
+// series of flat rib plateaus separated by trapezoidal indent valleys. Every
+// dimension is a top-level variable and can be overridden with OpenSCAD's -D
+// flag, so this file can drive adapter designs for any roof with the same
+// profile family.
 //
 // Exports:
 //     module trapezoidal_roof_cutter(...)   - solid block on one side of the
@@ -25,7 +25,7 @@ indent_top_w   = 2.000;        // indent width at rib plateau level (top of the 
 indent_bot_w   = 1.500;        // indent width at the floor              (bottom of the trapezoid)
 indent_depth   = 0.500;        // vertical drop from rib plateau to indent floor
 corner_r       = 0.0625;       // convex bend radius on the rib-to-sidewall corners
-sheet_thickness = 0.032;       // sheet-metal gauge (~0.8 mm on automotive body panels)
+sheet_thickness = 0.032;       // sheet-metal gauge (~0.8 mm typical automotive body panel)
 
 // Derived
 roof_pitch          = rib_width + indent_top_w;                    // rib CL to next rib CL

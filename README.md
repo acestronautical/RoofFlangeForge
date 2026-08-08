@@ -57,8 +57,4 @@ thickness, corner radius) before you commit to a full print.
 
 ## Credits
 
-Design lineage: inspired by [a prior project](https://example.invalid/)'s CNC-machined
-expanded-PVC Maxxfan Dome adapter. Roof geometry was reverse-engineered from
-photo measurements of a example ribbed sheet-metal.
-
 Development notes for the code are in [DEV.md](DEV.md).
