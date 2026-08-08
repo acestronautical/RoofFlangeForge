@@ -11,12 +11,24 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Install OpenSCAD
-              # Ubuntu ships a slightly-old openscad in apt, but it's plenty
-              # for our SCADs (no Manifold or nightly-only features used).
+            - name: Install OpenSCAD (nightly AppImage)
+              # Ubuntu's apt ships an ancient CGAL-only openscad (~2019.05)
+              # whose boolean output isn't byte-deterministic across runs for
+              # our bolt-hole configs (hash-set iteration order in CGAL leaks
+              # into the STL layout). The snapshot builds ship Manifold as the
+              # default engine, which is deterministic. Grab the latest.
               run: |
-                  sudo apt-get update
-                  sudo apt-get install -y openscad
+                  sudo apt-get update -qq
+                  sudo apt-get install -y -qq fuse libfuse2 wget
+                  latest=$(curl -sSL https://files.openscad.org/snapshots/ \
+                      | grep -oE 'OpenSCAD-[0-9.]+\.ai[0-9]+-x86_64\.AppImage' \
+                      | sort -u | tail -1)
+                  echo "Using $latest"
+                  wget -q "https://files.openscad.org/snapshots/${latest}" -O openscad.AppImage
+                  chmod +x openscad.AppImage
+                  ./openscad.AppImage --appimage-extract > /dev/null
+                  sudo mv squashfs-root /opt/openscad
+                  sudo ln -sf /opt/openscad/AppRun /usr/local/bin/openscad
                   openscad --version
 
             - name: Reproducibility test
