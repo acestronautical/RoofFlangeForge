@@ -34,6 +34,7 @@
                             <select name="shape">
                                 <option value="circular">Circular flange (round cutout)</option>
                                 <option value="rectangular">Rectangular flange (14x14-style)</option>
+                                <option value="strip">Strip (mounting bar, no cutout)</option>
                                 <option value="roof">Roof (visualize the profile)</option>
                             </select>
                         </label>
@@ -68,6 +69,17 @@
                             </label>
                         </div>
 
+                        <div data-shape="strip" hidden>
+                            <label>
+                                Length (across ribs) <span class="unit-suffix">(in)</span>
+                                <input type="number" name="strip_x" value="15.5" step="any" />
+                            </label>
+                            <label>
+                                Width (along ribs) <span class="unit-suffix">(in)</span>
+                                <input type="number" name="strip_y" value="3" step="any" />
+                            </label>
+                        </div>
+
                         <div data-shape="roof" hidden>
                             <label>
                                 Preview extent, half-width <span class="unit-suffix">(in)</span>
@@ -79,7 +91,7 @@
                             </label>
                         </div>
 
-                        <label data-shape-only="circular rectangular">
+                        <label data-shape-only="circular rectangular strip">
                             Ring thickness <span class="unit-suffix">(in)</span>
                             <input type="number" name="main_thick" value="0.5" step="any" />
                         </label>
@@ -103,7 +115,7 @@
                             Indent depth <span class="unit-suffix">(in)</span>
                             <input type="number" name="indent_depth" value="0.5" step="any" />
                         </label>
-                        <label data-shape-only="circular rectangular">
+                        <label data-shape-only="circular rectangular strip">
                             Sheet-metal thickness <span class="unit-suffix">(in)</span>
                             <input type="number" name="sheet_thickness" value="0.032" step="any" />
                         </label>
@@ -122,7 +134,7 @@
                                 <option value="indent">Indent (cutout straddles an indent)</option>
                             </select>
                         </label>
-                        <label data-shape-only="circular rectangular">
+                        <label data-shape-only="circular rectangular strip">
                             Side
                             <select name="side">
                                 <option value="top">Topside (mounts above the roof)</option>

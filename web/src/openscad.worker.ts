@@ -11,6 +11,7 @@
 const SCAD_SOURCES = [
     "circular_adapter.scad",
     "rectangular_adapter.scad",
+    "strip.scad",
     "trapezoidal_roof.scad",
     "trapezoidal_roof_preview.scad",
 ] as const;
