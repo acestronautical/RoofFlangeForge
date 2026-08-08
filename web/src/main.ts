@@ -49,6 +49,41 @@ function stopRenderProgress(): void {
 }
 
 // Units toggle --------------------------------------------------------------
+// Per-field spinner increments in inches. Missing entries fall back to 0.1
+// in / 1 mm. Note: `step` only controls the up/down arrows and validity --
+// users can always type any value; the form uses `novalidate` so step-off
+// values submit fine.
+const STEP_IN: Record<string, number> = {
+    ID: 0.25, OD: 0.25,
+    inner_x: 0.25, inner_y: 0.25, outer_x: 0.25, outer_y: 0.25,
+    strip_x: 0.25, strip_y: 0.25,
+    main_thick: 0.0625,
+    preview_xy: 1, preview_thickness: 0.01,
+    rib_width: 0.125, indent_top_w: 0.125, indent_bot_w: 0.125,
+    indent_depth: 0.0625, corner_r: 0.0625,
+    corr_pitch: 0.125, corr_depth: 0.0625,
+    sheet_thickness: 0.001,
+};
+const STEP_MM: Record<string, number> = {
+    ID: 5, OD: 5,
+    inner_x: 5, inner_y: 5, outer_x: 5, outer_y: 5,
+    strip_x: 5, strip_y: 5,
+    main_thick: 1,
+    preview_xy: 10, preview_thickness: 0.25,
+    rib_width: 2, indent_top_w: 2, indent_bot_w: 2,
+    indent_depth: 1, corner_r: 1,
+    corr_pitch: 2, corr_depth: 1,
+    sheet_thickness: 0.05,
+};
+function applyStepsForUnit(unit: Unit): void {
+    const table = unit === "mm" ? STEP_MM : STEP_IN;
+    form.querySelectorAll<HTMLInputElement>('input[type="number"]').forEach((input) => {
+        const s = table[input.name];
+        input.step = s !== undefined ? String(s) : "any";
+    });
+}
+applyStepsForUnit(currentUnit);
+
 unitsSelect.addEventListener("change", () => {
     const next = unitsSelect.value as Unit;
     if (next === currentUnit) return;
@@ -62,6 +97,7 @@ unitsSelect.addEventListener("change", () => {
         el.textContent = label;
     });
     currentUnit = next;
+    applyStepsForUnit(currentUnit);
 });
 
 function round(value: number, places: number): number {
