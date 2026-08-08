@@ -55,7 +55,9 @@ jobs:
               # openscad-wasm's main-branch build lands everything (openscad.js,
               # openscad.wasm.js, openscad.wasm, openscad.fonts.js, and the
               # generated .d.ts files) in `build/`. Older releases used `dist/`,
-              # so fall back if `build/` isn't there.
+              # so fall back if `build/` isn't there. We deliberately skip the
+              # fonts and mcad entry points -- fonts.js is ~8 MB of base64
+              # font data and we don't use text() or MCAD in any of our SCAD.
               run: |
                   mkdir -p artifacts/openscad
                   if [ -d openscad-wasm/build ]; then src=openscad-wasm/build
@@ -64,7 +66,14 @@ jobs:
                   fi
                   echo "Source: $src"
                   ls -lh "$src"
-                  cp -a "$src"/. artifacts/openscad/
+                  for f in "$src"/*; do
+                      name="$(basename "$f")"
+                      case "$name" in
+                          openscad.fonts.*|openscad.mcad.*)
+                              echo "skip $name"; continue ;;
+                      esac
+                      cp -a "$f" artifacts/openscad/
+                  done
                   echo "---"
                   ls -lh artifacts/openscad
 
