@@ -13,6 +13,7 @@ const shapeSelect = form.elements.namedItem("shape") as HTMLSelectElement;
 const roofProfileSelect = form.elements.namedItem("roof_profile") as HTMLSelectElement;
 const renderBtn = document.getElementById("render") as HTMLButtonElement;
 const downloadBtn = document.getElementById("download") as HTMLButtonElement;
+const shareBtn = document.getElementById("share") as HTMLButtonElement;
 const status = document.getElementById("status") as HTMLParagraphElement;
 const dimsLine = document.getElementById("dims") as HTMLDivElement;
 const canvas = document.getElementById("preview") as HTMLCanvasElement;
@@ -231,6 +232,7 @@ form.addEventListener("submit", async (ev) => {
         dimsLine.textContent = formatDims(dims.xMm, dims.yMm, dims.zMm);
         status.textContent = `Rendered ${bytes.length.toLocaleString()} bytes in ${ms} ms`;
         downloadBtn.disabled = false;
+        writeParamsToUrl();
     } catch (err) {
         stopRenderProgress();
         status.textContent = `Error: ${(err as Error).message}`;
@@ -253,4 +255,68 @@ downloadBtn.addEventListener("click", () => {
     a.download = lastName;
     a.click();
     URL.revokeObjectURL(url);
+});
+
+// Share --------------------------------------------------------------------
+// Serialize the currently-enabled form controls into a URL query string.
+// Disabled controls (shape-mode or roof-profile toggles hide them) are
+// skipped so the URL only carries the fields that actually apply.
+function serializeParams(): URLSearchParams {
+    const params = new URLSearchParams();
+    for (const el of form.elements as unknown as Iterable<HTMLElement>) {
+        if (
+            !(el instanceof HTMLInputElement || el instanceof HTMLSelectElement)
+            || !el.name
+            || el.disabled
+        ) continue;
+        params.set(el.name, el.value);
+    }
+    return params;
+}
+
+function writeParamsToUrl(): void {
+    const qs = serializeParams().toString();
+    history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
+}
+
+// Apply ?key=value pairs to the form. Units are applied first so subsequent
+// numeric fields land in the right display unit; then shape/roof-profile so
+// visibility settles before per-mode fields are populated.
+function applyParamsFromUrl(): void {
+    const params = new URLSearchParams(location.search);
+    if (params.size === 0) return;
+    const priority = ["units", "shape", "roof_profile"];
+    for (const name of priority) {
+        const v = params.get(name);
+        if (v == null) continue;
+        const el = form.elements.namedItem(name);
+        if (el instanceof HTMLSelectElement || el instanceof HTMLInputElement) {
+            el.value = v;
+            el.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+    }
+    for (const [name, value] of params) {
+        if (priority.includes(name)) continue;
+        const el = form.elements.namedItem(name);
+        if (el instanceof HTMLSelectElement || el instanceof HTMLInputElement) {
+            el.value = value;
+        }
+    }
+    currentUnit = unitsSelect.value as Unit;
+}
+applyParamsFromUrl();
+
+shareBtn.addEventListener("click", async () => {
+    writeParamsToUrl();
+    try {
+        await navigator.clipboard.writeText(location.href);
+        shareBtn.classList.add("copied");
+        shareBtn.title = "Copied!";
+        setTimeout(() => {
+            shareBtn.classList.remove("copied");
+            shareBtn.title = "Copy share link";
+        }, 1200);
+    } catch {
+        window.prompt("Copy this link:", location.href);
+    }
 });

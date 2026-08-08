@@ -33,6 +33,10 @@ header {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border);
     background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
 header h1 {
@@ -45,6 +49,33 @@ header p {
     margin: 0;
     color: var(--muted);
     font-size: 0.9rem;
+}
+
+.icon-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: inherit;
+    border-radius: 6px;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s, border-color 0.15s;
+}
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent, currentColor);
+}
+.icon-btn:focus-visible {
+    outline: 2px solid var(--accent, #6ea8ff);
+    outline-offset: 2px;
+}
+.icon-btn.copied {
+    background: rgba(80, 200, 120, 0.15);
+    border-color: rgba(80, 200, 120, 0.6);
 }
 
 main {
