@@ -22,6 +22,28 @@ window.addEventListener("resize", () => viewer.resize());
 let lastBytes: Uint8Array | null = null;
 let lastName = "";
 let currentUnit: Unit = unitsSelect.value as Unit;
+let renderTicker: number | null = null;
+
+function startRenderProgress(): number {
+    const t0 = performance.now();
+    const spinnerFrames = ["\u2807", "\u2811", "\u2819", "\u2838", "\u28b0", "\u28a0", "\u2844", "\u2846"];
+    let frame = 0;
+    const tick = (): void => {
+        const elapsed = (performance.now() - t0) / 1000;
+        status.textContent = `${spinnerFrames[frame]} Rendering\u2026 ${elapsed.toFixed(1)}s`;
+        frame = (frame + 1) % spinnerFrames.length;
+    };
+    tick();
+    renderTicker = window.setInterval(tick, 120);
+    return t0;
+}
+
+function stopRenderProgress(): void {
+    if (renderTicker !== null) {
+        clearInterval(renderTicker);
+        renderTicker = null;
+    }
+}
 
 // Units toggle --------------------------------------------------------------
 unitsSelect.addEventListener("change", () => {
@@ -150,11 +172,11 @@ form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     renderBtn.disabled = true;
     downloadBtn.disabled = true;
-    status.textContent = "Rendering\u2026";
-    const t0 = performance.now();
+    const t0 = startRenderProgress();
     try {
         const { scad, overrides, outName } = buildJob();
         const bytes = await runScad(scad, overrides);
+        stopRenderProgress();
         const ms = Math.round(performance.now() - t0);
         lastBytes = bytes;
         lastName = outName;
@@ -163,6 +185,7 @@ form.addEventListener("submit", async (ev) => {
         status.textContent = `Rendered ${bytes.length.toLocaleString()} bytes in ${ms} ms`;
         downloadBtn.disabled = false;
     } catch (err) {
+        stopRenderProgress();
         status.textContent = `Error: ${(err as Error).message}`;
     } finally {
         renderBtn.disabled = false;

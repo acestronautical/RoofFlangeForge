@@ -1,94 +1,43 @@
 /*
- * OpenSCAD-WASM runner.
+ * Client-side wrapper around openscad.worker.ts.
  *
- * The 2022.03.20 release ships as ES modules under /openscad/. Because those
- * files internally use bare-URL `import` statements ("./openscad.wasm.js"),
- * they only resolve if the browser fetches the entry from the same absolute
- * directory -- so we load it with a raw dynamic import against a URL under
- * `import.meta.env.BASE_URL` (which is the Vite-configured base path).
- *
- * A fresh OpenSCAD instance is built per render. Reusing an instance across
- * `callMain()` calls corrupts Emscripten's runtime state (Emscripten throws
- * an exception-pointer integer on the second invocation), so we pay a small
- * ~200 ms reinstantiation cost each render instead. The .wasm binary itself
- * is browser-cached so this is cheap after the first load.
- *
- * Once instantiated, calls look like:
- *     await runScad("circular_adapter.scad", { ID: 6.375, side: '"top"' });
- * The values are passed through as OpenSCAD `-D` overrides, so quoting rules
- * for strings ("top" / "bottom") have to be honored by the caller.
+ * A single worker is spun up lazily and reused across renders. Each render
+ * gets a unique message id so responses can be routed back to the right
+ * caller. The wasm binary is loaded exactly once by the worker (it caches its
+ * factory promise), so subsequent renders skip re-instantiation of the module
+ * but still get a fresh runtime state per render (that's done inside the
+ * worker, not here).
  */
 
-// The scad sources are copied into public/scad/ by the build step and fetched
-// at runtime so the wasm's MEMFS can mount them.
-const SCAD_SOURCES = [
-    "circular_adapter.scad",
-    "rectangular_adapter.scad",
-    "trapezoidal_roof.scad",
-    "trapezoidal_roof_preview.scad",
-] as const;
+let workerPromise: Promise<Worker> | null = null;
+let msgId = 0;
 
-// Cache: the ESM entry factory (idempotent — the browser dedupes)
-// and the fetched scad-source texts (also fine to cache).
-let openScadFactoryPromise: Promise<any> | null = null;
-let scadSourceCache: Map<string, string> | null = null;
-
-async function loadOpenScad(): Promise<any> {
-    if (!openScadFactoryPromise) {
-        const base = import.meta.env.BASE_URL;
-        const url = new URL(`${base}openscad/openscad.js`, window.location.href).href;
-        openScadFactoryPromise = import(/* @vite-ignore */ url).then((mod) => mod.default);
+function getWorker(): Promise<Worker> {
+    if (!workerPromise) {
+        workerPromise = Promise.resolve(
+            new Worker(new URL("./openscad.worker.ts", import.meta.url), {
+                type: "module",
+                name: "openscad",
+            }),
+        );
     }
-    return openScadFactoryPromise;
+    return workerPromise;
 }
 
-async function loadScadSources(): Promise<Map<string, string>> {
-    if (scadSourceCache) return scadSourceCache;
-    const base = import.meta.env.BASE_URL;
-    const entries = await Promise.all(
-        SCAD_SOURCES.map(async (name) => {
-            const res = await fetch(`${base}scad/${name}`);
-            if (!res.ok) throw new Error(`fetch ${name} -> ${res.status}`);
-            return [name, await res.text()] as const;
-        }),
-    );
-    scadSourceCache = new Map(entries);
-    return scadSourceCache;
-}
-
-/**
- * Render a scad source with a bag of parameter overrides. Returns the STL
- * bytes.
- */
 export async function runScad(
     scadFile: string,
     params: Record<string, string | number>,
 ): Promise<Uint8Array> {
-    const [OpenSCAD, sources] = await Promise.all([loadOpenScad(), loadScadSources()]);
-    const instance = await OpenSCAD({ noInitialRun: true });
-    for (const [name, text] of sources) {
-        instance.FS.writeFile(`/${name}`, text);
-    }
-
-    const outputName = "/out.stl";
-    const args: string[] = [];
-    for (const [key, value] of Object.entries(params)) {
-        args.push("-D", `${key}=${value}`);
-    }
-    args.push("-o", outputName);
-    args.push(`/${scadFile}`);
-
-    try {
-        instance.callMain(args);
-    } catch (err) {
-        // Emscripten throws a pointer integer on abort; try to salvage a
-        // readable message from the wasm's stderr capture.
-        throw new Error(
-            typeof err === "number"
-                ? `openscad aborted (exception #${err})`
-                : String(err),
-        );
-    }
-
-    return instance.FS.readFile(outputName) as Uint8Array;
+    const worker = await getWorker();
+    const id = ++msgId;
+    return new Promise((resolve, reject) => {
+        const listener = (ev: MessageEvent) => {
+            if (ev.data.id !== id) return;
+            worker.removeEventListener("message", listener);
+            if (ev.data.ok) resolve(ev.data.bytes as Uint8Array);
+            else reject(new Error(ev.data.error));
+        };
+        worker.addEventListener("message", listener);
+        worker.postMessage({ type: "render", id, scad: scadFile, params });
+    });
 }
