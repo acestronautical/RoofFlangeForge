@@ -52,14 +52,20 @@ jobs:
               run: make all
 
             - name: Collect artifacts
+              # openscad-wasm's main-branch build lands everything (openscad.js,
+              # openscad.wasm.js, openscad.wasm, openscad.fonts.js, and the
+              # generated .d.ts files) in `build/`. Older releases used `dist/`,
+              # so fall back if `build/` isn't there.
               run: |
                   mkdir -p artifacts/openscad
-                  cp openscad-wasm/dist/openscad.js artifacts/openscad/
-                  cp openscad-wasm/dist/openscad.wasm artifacts/openscad/
-                  cp openscad-wasm/dist/openscad.wasm.js artifacts/openscad/
-                  cp openscad-wasm/dist/openscad.d.ts artifacts/openscad/ 2>/dev/null || true
-                  cp openscad-wasm/dist/openscad.wasm.d.ts artifacts/openscad/ 2>/dev/null || true
-                  cp openscad-wasm/dist/files.d.ts artifacts/openscad/ 2>/dev/null || true
+                  if [ -d openscad-wasm/build ]; then src=openscad-wasm/build
+                  elif [ -d openscad-wasm/dist ]; then src=openscad-wasm/dist
+                  else echo "No build or dist directory in openscad-wasm/" >&2; exit 1
+                  fi
+                  echo "Source: $src"
+                  ls -lh "$src"
+                  cp -a "$src"/. artifacts/openscad/
+                  echo "---"
                   ls -lh artifacts/openscad
 
             - name: Upload as workflow artifact
@@ -69,13 +75,10 @@ jobs:
                   path: artifacts/openscad/
 
             - name: Copy into web/public/openscad/
+              # Nuke the old vendored bundle before dropping the new one so a
+              # renamed/removed upstream file doesn't linger.
               run: |
-                  rm -f web/public/openscad/openscad.js \
-                        web/public/openscad/openscad.wasm \
-                        web/public/openscad/openscad.wasm.js \
-                        web/public/openscad/openscad.d.ts \
-                        web/public/openscad/openscad.wasm.d.ts \
-                        web/public/openscad/files.d.ts
+                  rm -rf web/public/openscad/*
                   cp -a artifacts/openscad/. web/public/openscad/
 
             - name: Open PR
