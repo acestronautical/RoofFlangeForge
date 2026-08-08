@@ -28,7 +28,15 @@ jobs:
                   chmod +x openscad.AppImage
                   ./openscad.AppImage --appimage-extract > /dev/null
                   sudo mv squashfs-root /opt/openscad
-                  sudo ln -sf /opt/openscad/AppRun /usr/local/bin/openscad
+                  # Symlinking AppRun breaks its relative apprun-hooks lookup,
+                  # so drop a wrapper that sets APPDIR and execs AppRun with
+                  # the caller's original working directory + args.
+                  sudo tee /usr/local/bin/openscad > /dev/null <<'EOF'
+                  #!/bin/bash
+                  export APPDIR=/opt/openscad
+                  exec "$APPDIR/AppRun" "$@"
+                  EOF
+                  sudo chmod +x /usr/local/bin/openscad
                   openscad --version
 
             - name: Reproducibility test
