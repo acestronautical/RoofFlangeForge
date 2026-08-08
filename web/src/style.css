@@ -9,6 +9,17 @@
     --accent-hover: #6ba1ff;
 }
 
+[data-theme="light"] {
+    --bg: #e8eaee;
+    --panel: #f4f5f7;
+    --panel-2: #dde0e5;
+    --border: #b9bec5;
+    --text: #23262b;
+    --muted: #5c626c;
+    --accent: #2f6bd6;
+    --accent-hover: #2358c0;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -81,6 +92,66 @@ header p {
 .icon-btn.copied {
     background: rgba(80, 200, 120, 0.15);
     border-color: rgba(80, 200, 120, 0.6);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Show the sun icon in dark mode (click to go light) and the moon in light
+   mode (click to go dark); one is always hidden. */
+#theme .theme-moon { display: none; }
+[data-theme="light"] #theme .theme-sun { display: none; }
+[data-theme="light"] #theme .theme-moon { display: block; }
+
+.help-dialog {
+    max-width: 640px;
+    max-height: 85vh;
+    width: calc(100vw - 2rem);
+    padding: 1.5rem 1.75rem;
+    background: var(--panel);
+    color: inherit;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: auto;
+    position: fixed;
+    inset: 0;
+    margin: auto;
+}
+.help-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+}
+.help-dialog h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+.help-dialog h3 {
+    margin: 1.25rem 0 0.35rem 0;
+    font-size: 1rem;
+    color: var(--accent, #a8c1e6);
+}
+.help-dialog p,
+.help-dialog li {
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+.help-dialog ol,
+.help-dialog ul {
+    padding-left: 1.25rem;
+}
+.help-dialog li + li {
+    margin-top: 0.35rem;
+}
+.help-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 1.2rem;
+    line-height: 1;
 }
 
 .toast {

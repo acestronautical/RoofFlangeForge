@@ -181,6 +181,10 @@ export class StlViewer {
         this.camera.updateProjectionMatrix();
     }
 
+    setBackgroundColor(hex: number): void {
+        (this.scene.background as THREE.Color).set(hex);
+    }
+
     private animate = (): void => {
         this.animationFrame = requestAnimationFrame(this.animate);
         this.controls.update();
