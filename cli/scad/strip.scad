@@ -32,7 +32,7 @@ main_thick  = roof_depth;                 // thickness above/below the rib plate
 // -----------------------------------------------------------------------------
 // Position on the roof and which side it mounts on
 // -----------------------------------------------------------------------------
-fan_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
+flange_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
 side         = "top";                     // "top" (outside of roof) or "bottom" (inside)
 
 // -----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ module strip() {
 module roof_cutter() {
     if (roof_profile == "corrugated")
         corrugated_roof_cutter(
-            fan_offset_x = fan_offset_x,
+            flange_offset_x = flange_offset_x,
             pitch        = corr_pitch,
             depth        = corr_depth,
             cut_xy       = cut_xy,
@@ -77,7 +77,7 @@ module roof_cutter() {
         );
     else
         trapezoidal_roof_cutter(
-            fan_offset_x = fan_offset_x,
+            flange_offset_x = flange_offset_x,
             cut_xy       = cut_xy,
             cut_z        = cut_z,
             side         = side,

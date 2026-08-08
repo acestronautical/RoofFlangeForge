@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    reproducibility:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install OpenSCAD
+              # Ubuntu ships a slightly-old openscad in apt, but it's plenty
+              # for our SCADs (no Manifold or nightly-only features used).
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y openscad
+                  openscad --version
+
+            - name: Reproducibility test
+              run: bash cli/tests/reproducibility.sh

@@ -157,7 +157,7 @@ function inches(data: FormData, name: string): number {
     return currentUnit === "mm" ? raw / MM_PER_IN : raw;
 }
 
-function fanOffsetXInches(data: FormData): number {
+function flangeOffsetXInches(data: FormData): number {
     const mount = String(data.get("mount"));
     if (mount !== "indent") return 0;
     if (String(data.get("roof_profile")) === "corrugated") {
@@ -195,14 +195,14 @@ function buildJob(): RenderJob {
     const overrides: Record<string, string | number> = roofOverrides(data);
 
     if (shape === "roof") {
-        overrides.fan_offset_x = fanOffsetXInches(data);
+        overrides.flange_offset_x = flangeOffsetXInches(data);
         overrides.preview_xy = inches(data, "preview_xy");
         overrides.sheet_thickness = inches(data, "preview_thickness");
         const previewScad =
             profile === "corrugated"
                 ? "corrugated_roof_preview.scad"
                 : "trapezoidal_roof_preview.scad";
-        const mountLabel = fanOffsetXInches(data) === 0 ? "rib" : "indent";
+        const mountLabel = flangeOffsetXInches(data) === 0 ? "rib" : "indent";
         return {
             scad: previewScad,
             overrides,
@@ -212,10 +212,10 @@ function buildJob(): RenderJob {
 
     overrides.sheet_thickness = inches(data, "sheet_thickness");
     overrides.main_thick = inches(data, "main_thick");
-    overrides.fan_offset_x = fanOffsetXInches(data);
+    overrides.flange_offset_x = flangeOffsetXInches(data);
     overrides.side = `"${String(data.get("side"))}"`;
 
-    const mount = fanOffsetXInches(data) === 0 ? "rib-centered" : "indent-centered";
+    const mount = flangeOffsetXInches(data) === 0 ? "rib-centered" : "indent-centered";
     const face = overrides.side === '"top"' ? "topside" : "underside";
 
     if (shape === "circular") {
@@ -312,7 +312,11 @@ function serializeParams(): URLSearchParams {
 }
 
 function writeParamsToUrl(): void {
-    const qs = serializeParams().toString();
+    const params = serializeParams();
+    // Include the auto-render flag so anyone opening the shared URL sees the
+    // exact STL without an extra click.
+    params.set("render", "1");
+    const qs = params.toString();
     history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
 }
 
@@ -342,6 +346,13 @@ function applyParamsFromUrl(): void {
     currentUnit = unitsSelect.value as Unit;
 }
 applyParamsFromUrl();
+
+// If the URL carries `render=1`, kick off a render automatically so a
+// shared link reproduces the STL without a manual click. The submit path is
+// what wires up the progress ticker and download button, so use it directly.
+if (new URLSearchParams(location.search).get("render") === "1") {
+    form.requestSubmit();
+}
 
 shareBtn.addEventListener("click", async () => {
     writeParamsToUrl();

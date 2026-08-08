@@ -13,13 +13,13 @@ $fn = 240;
 preview_xy      = 12;
 sheet_thickness = 0.100;
 
-fan_offset_x = 0;                        // 0 = rib-centered (peak); corr_indent_center_x = indent-centered (trough)
+flange_offset_x = 0;                        // 0 = rib-centered (peak); corr_indent_center_x = indent-centered (trough)
 
 IN2MM = 25.4;
 
 scale([IN2MM, IN2MM, IN2MM])
     corrugated_roof_sheet(
-        fan_offset_x    = fan_offset_x,
+        flange_offset_x    = flange_offset_x,
         cut_xy          = preview_xy,
         sheet_thickness = sheet_thickness
     );
