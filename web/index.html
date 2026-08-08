@@ -120,11 +120,11 @@
                         </label>
 
                         <div data-shape="circular">
-                            <label>
+                            <label title="Inner diameter of the flange ring. Must be at least the diameter of the opening you're framing (fan shroud, exhaust vent, etc.).">
                                 Inner diameter <span class="unit-suffix">inches</span>
                                 <input type="number" name="ID" value="6.5" min="0" step="any" />
                             </label>
-                            <label>
+                            <label title="Outer diameter of the flange ring. Bigger = more material to fasten through and better sealing area.">
                                 Outer diameter <span class="unit-suffix">inches</span>
                                 <input type="number" name="OD" value="10" min="0" step="any" />
                             </label>
@@ -171,7 +171,7 @@
                             </label>
                         </div>
 
-                        <label data-shape-only="circular rectangular strip">
+                        <label data-shape-only="circular rectangular strip" title="Total thickness of the flange material above the roof plateau plane. Thicker = stiffer part, more filament, longer print.">
                             Thickness <span class="unit-suffix">inches</span>
                             <input type="number" name="main_thick" value="0.25" min="0" step="any" />
                         </label>
@@ -179,61 +179,114 @@
 
                     <fieldset>
                         <legend>Roof</legend>
-                        <label>
+                        <label title="The cross-section shape of the sheet metal you're mounting on.">
                             Profile
                             <select name="roof_profile">
                                 <option value="trapezoidal">Trapezoidal ribs (stamped body panel)</option>
                                 <option value="corrugated">Corrugated (sinusoidal, e.g. barn tin)</option>
                             </select>
                         </label>
+
                         <div data-roof-profile="trapezoidal">
-                            <label>
+                            <label title="Width of the flat top of each rib (the raised, load-bearing surface between valleys).">
                                 Rib plateau width <span class="unit-suffix">inches</span>
                                 <input type="number" name="rib_width" value="3.5" min="0" step="any" />
                             </label>
-                            <label>
+                            <label title="Width of the indent measured at the rib-plateau level (top of the trapezoid). Larger than the floor width because the sidewalls angle inward.">
                                 Indent width at top <span class="unit-suffix">inches</span>
                                 <input type="number" name="indent_top_w" value="2" min="0" step="any" />
                             </label>
-                            <label>
+                            <label title="Width of the indent at its floor (bottom of the trapezoid). Narrower than the top width.">
                                 Indent width at floor <span class="unit-suffix">inches</span>
                                 <input type="number" name="indent_bot_w" value="1.5" min="0" step="any" />
                             </label>
-                            <label>
+                            <label title="Vertical drop from the rib plateau down to the indent floor.">
                                 Indent depth <span class="unit-suffix">inches</span>
                                 <input type="number" name="indent_depth" value="0.5" min="0" step="any" />
                             </label>
-                            <label>
+                            <label title="Chamfer size at each rib-to-sidewall bend. Match this to the actual bend radius on the panel; too sharp and the adapter lifts off the plateau.">
                                 Corner radius at rib bends <span class="unit-suffix">inches</span>
                                 <input type="number" name="corner_r" value="0.0625" min="0" step="any" />
                             </label>
                         </div>
                         <div data-roof-profile="corrugated" hidden>
-                            <label>
+                            <label title="Distance from one wave peak to the next (one full wavelength). Ag-panel corrugated tin is usually 2.667 inches.">
                                 Corrugation pitch (peak-to-peak) <span class="unit-suffix">inches</span>
                                 <input type="number" name="corr_pitch" value="2.667" min="0" step="any" />
                             </label>
-                            <label>
+                            <label title="Vertical distance from a wave peak to a wave trough. Usually ~0.5 inch on standard corrugated panels.">
                                 Corrugation depth (peak-to-trough) <span class="unit-suffix">inches</span>
                                 <input type="number" name="corr_depth" value="0.5" min="0" step="any" />
                             </label>
                         </div>
-                        <label data-shape-only="circular rectangular strip">
+                        <label data-shape-only="circular rectangular strip" title="Gauge of the actual sheet metal you're mounting on. Sets the gap the topside and underside pieces leave for the panel; add 0.005-0.010 inch on top of the real gauge to account for paint and print squish.">
                             Sheet-metal thickness <span class="unit-suffix">inches</span>
                             <input type="number" name="sheet_thickness" value="0.032" min="0" step="any" />
                         </label>
+
+                        <details class="diagram-toggle">
+                            <summary>Show diagram</summary>
+                            <svg class="roof-diagram" data-roof-profile="trapezoidal" viewBox="0 0 320 150" aria-hidden="true">
+                                <path d="M -10 40 L 90 40 L 110 110 L 170 110 L 190 40 L 290 40 L 310 110 L 330 110"
+                                    fill="none" stroke="currentColor" stroke-width="2" />
+                                <g class="dim">
+                                    <line x1="-10" y1="20" x2="90" y2="20" />
+                                    <line x1="-10" y1="15" x2="-10" y2="25" />
+                                    <line x1="90" y1="15" x2="90" y2="25" />
+                                    <text x="40" y="14">rib&nbsp;width</text>
+                                </g>
+                                <g class="dim">
+                                    <line x1="90" y1="20" x2="190" y2="20" />
+                                    <line x1="90" y1="15" x2="90" y2="25" />
+                                    <line x1="190" y1="15" x2="190" y2="25" />
+                                    <text x="140" y="14">indent&nbsp;top</text>
+                                </g>
+                                <g class="dim">
+                                    <line x1="110" y1="130" x2="170" y2="130" />
+                                    <line x1="110" y1="125" x2="110" y2="135" />
+                                    <line x1="170" y1="125" x2="170" y2="135" />
+                                    <text x="140" y="146">indent&nbsp;floor</text>
+                                </g>
+                                <g class="dim">
+                                    <line x1="235" y1="40" x2="235" y2="110" />
+                                    <line x1="230" y1="40" x2="240" y2="40" />
+                                    <line x1="230" y1="110" x2="240" y2="110" />
+                                    <text x="242" y="78">depth</text>
+                                </g>
+                                <g class="dim">
+                                    <circle cx="90" cy="40" r="6" fill="none" />
+                                    <text x="90" y="66">corner&nbsp;r</text>
+                                </g>
+                            </svg>
+                            <svg class="roof-diagram" data-roof-profile="corrugated" viewBox="0 0 320 150" aria-hidden="true" hidden>
+                                <path d="M 0 75 Q 40 15 80 75 T 160 75 T 240 75 T 320 75"
+                                    fill="none" stroke="currentColor" stroke-width="2" />
+                                <g class="dim">
+                                    <line x1="40" y1="15" x2="120" y2="15" />
+                                    <line x1="40" y1="10" x2="40" y2="20" />
+                                    <line x1="120" y1="10" x2="120" y2="20" />
+                                    <text x="80" y="9">pitch</text>
+                                </g>
+                                <g class="dim">
+                                    <line x1="200" y1="15" x2="200" y2="135" />
+                                    <line x1="195" y1="15" x2="205" y2="15" />
+                                    <line x1="195" y1="135" x2="205" y2="135" />
+                                    <text x="208" y="78">depth</text>
+                                </g>
+                            </svg>
+                        </details>
                     </fieldset>
 
                     <fieldset>
                         <legend>Placement</legend>
-                        <label>
+                        <label title="Which feature of the periodic roof pattern the flange center sits over. 'Rib' puts a raised rib right under the middle; 'Indent' puts a valley there instead.">
                             Center on
                             <select name="mount">
                                 <option value="rib">Rib (cutout straddles a raised rib)</option>
                                 <option value="indent">Indent (cutout straddles an indent)</option>
                             </select>
                         </label>
-                        <label data-shape-only="circular rectangular strip">
+                        <label data-shape-only="circular rectangular strip" title="'Topside' is the outside piece that clamps down from above; 'Underside' is the inside piece that receives the pads. Print both to sandwich the sheet metal.">
                             Side
                             <select name="side">
                                 <option value="top">Topside (mounts above the roof)</option>

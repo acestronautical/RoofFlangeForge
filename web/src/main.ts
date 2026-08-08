@@ -169,9 +169,13 @@ syncShapeVisibility();
 // Show/hide fields that depend on the selected roof profile ------------------
 function syncRoofProfileVisibility(): void {
     const profile = roofProfileSelect.value;
-    form.querySelectorAll<HTMLElement>("[data-roof-profile]").forEach((el) => {
-        const isThis = el.dataset.roofProfile === profile;
-        el.hidden = !isThis;
+    form.querySelectorAll<Element>("[data-roof-profile]").forEach((el) => {
+        const isThis = (el as HTMLElement).dataset.roofProfile === profile;
+        // SVG elements don't reflect the `hidden` IDL property to an
+        // attribute the way HTML elements do, so set the attribute directly
+        // -- otherwise the [hidden] CSS selector misses.
+        if (isThis) el.removeAttribute("hidden");
+        else el.setAttribute("hidden", "");
         el.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
             input.disabled = !isThis;
         });

@@ -140,6 +140,47 @@ header p {
     margin-left: 0.25rem;
 }
 
+.roof-diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 130px;
+    margin: 0.5rem 0 0.75rem;
+    color: var(--text);
+    opacity: 0.85;
+}
+.roof-diagram .dim {
+    fill: var(--muted);
+    stroke: var(--muted);
+    stroke-width: 1;
+    opacity: 0.9;
+}
+.roof-diagram .dim text {
+    font-size: 9px;
+    font-family: inherit;
+    stroke: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.diagram-toggle {
+    margin: 0.5rem 0;
+}
+.diagram-toggle > summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.85rem;
+    padding: 0.15rem 0;
+    user-select: none;
+}
+.diagram-toggle > summary:hover {
+    color: var(--text);
+}
+.diagram-toggle[open] > summary {
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
 /* Custom checkbox for the bolt-holes toggle. Native browser checkboxes are
    inconsistent across platforms and clash with the rest of the dark UI. */
 label.toggle {
