@@ -1,11 +1,16 @@
 export interface InitOptions {
-    noInitialRun: boolean;
+    noInitialRun?: boolean;
+    print?: (text: string) => void;
+    printErr?: (text: string) => void;
+    locateFile?: (path: string, prefix: string) => string;
+    monitorRunDependencies?: (left: number) => void;
+    onExit?: (status: number) => void;
+    [key: string]: unknown;
 }
 export interface OpenSCAD {
     callMain(args: Array<string>): number;
     FS: FS;
     locateFile?: (path: string, prefix: string) => string;
-    onRuntimeInitialized?: () => void;
 }
 export interface FS {
     mkdir(path: string): void;
@@ -23,4 +28,5 @@ export interface FS {
     unlink(path: string): void;
 }
 declare function OpenSCAD(options?: InitOptions): Promise<OpenSCAD>;
+export declare function getBuildInfo(): Promise<Array<string>>;
 export default OpenSCAD;
