@@ -32,6 +32,7 @@ export class StlViewer {
     private currentGrid: THREE.GridHelper | null = null;
     private loader = new STLLoader();
     private animationFrame = 0;
+    private hasFramed = false;
 
     constructor(private canvas: HTMLCanvasElement) {
         this.renderer = new THREE.WebGLRenderer({
@@ -153,7 +154,13 @@ export class StlViewer {
         const spanMm = Math.max(size.x, size.y);
         this.rebuildGrid((spanMm / MM_PER_INCH) * 1.5);
 
-        this.frameMesh(size);
+        // Frame the mesh only on the first render; leave the user's camera
+        // alone on every subsequent load so tweaking a parameter doesn't
+        // yank the view back to the default.
+        if (!this.hasFramed) {
+            this.frameMesh(size);
+            this.hasFramed = true;
+        }
         return dims;
     }
 
