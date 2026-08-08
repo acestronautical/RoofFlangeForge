@@ -74,12 +74,26 @@ build_rectangular() {
         -o "$out" "$CODE_DIR/rectangular_adapter.scad" 2>&1 | tail -6
 }
 
+build_strip() {
+    local mount="$1" face="$2"
+    local offset side out
+    offset="$(mount_to_offset "$mount")"
+    side="$(face_to_side "$face")"
+    out="$OUT_DIR/strip_${mount}-centered_${face}_15.5x3.stl"
+    echo "==> strip ${mount}-centered ${face}  ->  $(basename "$out")"
+    "$OSC" \
+        -D "fan_offset_x=${offset}" \
+        -D "side=\"${side}\"" \
+        -o "$out" "$CODE_DIR/strip.scad" 2>&1 | tail -6
+}
+
 for mount in rib indent; do
     for face in topside underside; do
         for id in "${CIRCULAR_IDS[@]}"; do
             build_circular "$mount" "$face" "$id"
         done
         build_rectangular "$mount" "$face"
+        build_strip "$mount" "$face"
     done
 done
 

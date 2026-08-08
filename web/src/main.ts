@@ -151,6 +151,15 @@ function buildJob(): RenderJob {
             outName: `circular_${mount}_${face}_ID${overrides.ID}_OD${overrides.OD}.stl`,
         };
     }
+    if (shape === "strip") {
+        overrides.strip_x = inches(data, "strip_x");
+        overrides.strip_y = inches(data, "strip_y");
+        return {
+            scad: "strip.scad",
+            overrides,
+            outName: `strip_${mount}_${face}_${overrides.strip_x}x${overrides.strip_y}.stl`,
+        };
+    }
     overrides.inner_x = inches(data, "inner_x");
     overrides.inner_y = inches(data, "inner_y");
     overrides.outer_x = inches(data, "outer_x");
