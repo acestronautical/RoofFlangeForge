@@ -15,8 +15,8 @@ $fn = 240;
 
 // -----------------------------------------------------------------------------
 // Preview extents (inches).  Big enough to show at least three ribs and two
-// indents on each side of the fan center.  Sheet thickness is bumped up from
-// the real ~0.032" gauge to 0.100" purely so it reads clearly as an STL.
+// indents on each side of the preview center.  Sheet thickness is bumped up
+// from the real ~0.032" gauge to 0.100" purely so it reads clearly as an STL.
 // -----------------------------------------------------------------------------
 preview_xy      = 12;
 sheet_thickness = 0.100;

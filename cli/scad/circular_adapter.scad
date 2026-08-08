@@ -31,15 +31,15 @@ roof_depth   = (roof_profile == "corrugated") ? corr_depth : indent_depth;
 // -----------------------------------------------------------------------------
 // Adapter shape
 // -----------------------------------------------------------------------------
-ID          = 6.500;                      // inner diameter (must be >= fan cutout)
+ID          = 6.500;                      // inner diameter (must be >= the opening you're framing)
 OD          = 10.000;                     // outer diameter
 main_thick  = roof_depth;                 // thickness of this piece above (topside) or below (underside) the rib plateau plane
 
 // -----------------------------------------------------------------------------
-// Position of the fan center on the roof and which side the adapter mounts on
+// Position of the flange center on the roof and which side the adapter mounts on
 // -----------------------------------------------------------------------------
 fan_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
-side         = "top";                     // "top" (outside of vehicle) or "bottom" (inside cabin)
+side         = "top";                     // "top" (outside of roof) or "bottom" (inside)
 
 // -----------------------------------------------------------------------------
 // Render controls
