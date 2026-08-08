@@ -15,6 +15,7 @@
 
 include <trapezoidal_roof.scad>
 include <corrugated_roof.scad>
+include <bolt_pattern.scad>
 
 // -----------------------------------------------------------------------------
 // Roof profile
@@ -34,6 +35,14 @@ main_thick  = roof_depth;                 // thickness above/below the rib plate
 // -----------------------------------------------------------------------------
 flange_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
 side         = "top";                     // "top" (outside of roof) or "bottom" (inside)
+
+// -----------------------------------------------------------------------------
+// Bolt holes (opt-in). See bolt_pattern.scad.
+// -----------------------------------------------------------------------------
+bolt_holes  = false;                      // set true to subtract a bolt pattern
+bolt_place  = "ribs";                     // "ribs", "indents", "both",
+                                          //   "every-other-rib", "every-other-indent"
+bolt_hole_d = 0.250;                      // through-hole diameter
 
 // -----------------------------------------------------------------------------
 // Render controls
@@ -61,8 +70,50 @@ module strip() {
             linear_extrude(height = z_top - z_bot)
                 square([strip_x, strip_y], center = true);
         roof_cutter();
+        if (bolt_holes)
+            bolt_column_at(
+                strip_bolt_xs(),
+                bolt_hole_d,
+                4 * (main_thick + roof_depth + sheet_thickness)
+            );
     }
 }
+
+// Roof pitch and feature widths for the currently-selected profile.
+function _strip_pitch()    = (roof_profile == "corrugated") ? corr_pitch : roof_pitch;
+function _strip_rib_w()    = (roof_profile == "corrugated") ? corr_pitch / 2 : rib_width;
+function _strip_indent_w() = (roof_profile == "corrugated") ? corr_pitch / 2 : indent_top_w;
+function _strip_indent_offset() =
+    (roof_profile == "corrugated") ? corr_indent_center_x : indent_center_x;
+
+// Include a feature centered at x only if at least half its width falls
+// within the strip -- skips the partial rib/indent that gets clipped at
+// either end.
+function _feature_qualifies(x, w) =
+    let (inside = min(x + w/2, strip_x/2) - max(x - w/2, -strip_x/2))
+    inside >= w/2;
+
+function _strip_rib_xs() =
+    let (p = _strip_pitch(), w = _strip_rib_w(), n = ceil(strip_x / p) + 1)
+    [ for (k = [-n : n])
+        let (x = k * p - flange_offset_x)
+        if (_feature_qualifies(x, w)) x ];
+
+function _strip_indent_xs() =
+    let (p = _strip_pitch(), w = _strip_indent_w(), off = _strip_indent_offset(),
+         n = ceil(strip_x / p) + 1)
+    [ for (k = [-n : n])
+        let (x = off + k * p - flange_offset_x)
+        if (_feature_qualifies(x, w)) x ];
+
+function _every_other(xs) = [ for (i = [0 : 2 : len(xs) - 1]) xs[i] ];
+
+function strip_bolt_xs() =
+      bolt_place == "indents"            ? _strip_indent_xs()
+    : bolt_place == "both"               ? concat(_strip_rib_xs(), _strip_indent_xs())
+    : bolt_place == "every-other-rib"    ? _every_other(_strip_rib_xs())
+    : bolt_place == "every-other-indent" ? _every_other(_strip_indent_xs())
+    : _strip_rib_xs();
 
 module roof_cutter() {
     if (roof_profile == "corrugated")

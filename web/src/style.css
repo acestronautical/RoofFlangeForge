@@ -100,6 +100,50 @@ header p {
     align-items: center;
 }
 
+/* Custom checkbox for the bolt-holes toggle. Native browser checkboxes are
+   inconsistent across platforms and clash with the rest of the dark UI. */
+label.toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+label.toggle input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    display: inline-grid;
+    place-content: center;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+}
+label.toggle input[type="checkbox"]::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    transform: scale(0);
+    transform-origin: center;
+    transition: transform 0.12s ease-out;
+    box-shadow: inset 1em 1em var(--accent);
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+label.toggle input[type="checkbox"]:checked {
+    border-color: var(--accent);
+}
+label.toggle input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+label.toggle input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
 /* Show the sun icon in dark mode (click to go light) and the moon in light
    mode (click to go dark); one is always hidden. */
 #theme .theme-moon { display: none; }

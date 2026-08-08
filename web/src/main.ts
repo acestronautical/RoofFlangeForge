@@ -66,6 +66,7 @@ const STEP_IN: Record<string, number> = {
     indent_depth: 0.0625, corner_r: 0.0625,
     corr_pitch: 0.125, corr_depth: 0.0625,
     sheet_thickness: 0.001,
+    bolt_offset: 0.0625, bolt_hole_d: 0.03125,
 };
 const STEP_MM: Record<string, number> = {
     ID: 5, OD: 5,
@@ -77,6 +78,7 @@ const STEP_MM: Record<string, number> = {
     indent_depth: 1, corner_r: 1,
     corr_pitch: 2, corr_depth: 1,
     sheet_thickness: 0.05,
+    bolt_offset: 1, bolt_hole_d: 0.5,
 };
 function applyStepsForUnit(unit: Unit): void {
     const table = unit === "mm" ? STEP_MM : STEP_IN;
@@ -102,6 +104,20 @@ unitsSelect.addEventListener("change", () => {
     currentUnit = next;
     applyStepsForUnit(currentUnit);
 });
+
+// Bolt-holes checkbox controls visibility of its sub-fields.
+const boltHolesInput = form.elements.namedItem("bolt_holes") as HTMLInputElement;
+function syncBoltHolesVisibility(): void {
+    const shown = boltHolesInput.checked;
+    form.querySelectorAll<HTMLElement>("[data-bolts-only]").forEach((el) => {
+        el.hidden = !shown;
+        el.querySelectorAll<HTMLInputElement>("input").forEach((input) => {
+            input.disabled = !shown;
+        });
+    });
+}
+boltHolesInput.addEventListener("change", syncBoltHolesVisibility);
+syncBoltHolesVisibility();
 
 function round(value: number, places: number): number {
     const p = 10 ** places;
@@ -218,12 +234,26 @@ function buildJob(): RenderJob {
     overrides.flange_offset_x = flangeOffsetXInches(data);
     overrides.side = `"${String(data.get("side"))}"`;
 
+    // Bolt-hole opt-in. Only pass shape-relevant params so we don't leak
+    // circular fields into a rectangular render (or vice versa).
+    const boltsOn = data.get("bolt_holes") === "on";
+    if (boltsOn) {
+        overrides.bolt_holes = "true";
+        overrides.bolt_hole_d = inches(data, "bolt_hole_d");
+    }
+
     const mount = flangeOffsetXInches(data) === 0 ? "rib-centered" : "indent-centered";
     const face = overrides.side === '"top"' ? "topside" : "underside";
 
     if (shape === "circular") {
         overrides.ID = inches(data, "ID");
         overrides.OD = inches(data, "OD");
+        if (boltsOn) {
+            overrides.bolt_n = Number(data.get("bolt_n_circ"));
+            // Bolt circle sits at the ring centerline plus a signed radial offset.
+            const ringMidR = ((overrides.ID as number) + (overrides.OD as number)) / 4;
+            overrides.bolt_pcd = 2 * (ringMidR + inches(data, "bolt_offset"));
+        }
         return {
             scad: "circular_adapter.scad",
             overrides,
@@ -233,6 +263,9 @@ function buildJob(): RenderJob {
     if (shape === "strip") {
         overrides.strip_x = inches(data, "strip_x");
         overrides.strip_y = inches(data, "strip_y");
+        if (boltsOn) {
+            overrides.bolt_place = `"${String(data.get("bolt_place"))}"`;
+        }
         return {
             scad: "strip.scad",
             overrides,
@@ -243,6 +276,13 @@ function buildJob(): RenderJob {
     overrides.inner_y = inches(data, "inner_y");
     overrides.outer_x = inches(data, "outer_x");
     overrides.outer_y = inches(data, "outer_y");
+    if (boltsOn) {
+        overrides.bolt_per_side = Number(data.get("bolt_per_side"));
+        // Bolt line sits on the ring centerline (edge_inset = ringWidth / 2)
+        // shifted outward by the signed offset (smaller inset = further from center).
+        const ringWidth = (overrides.outer_x as number) - (overrides.inner_x as number);
+        overrides.bolt_edge_inset = ringWidth / 4 - inches(data, "bolt_offset");
+    }
     return {
         scad: "rectangular_adapter.scad",
         overrides,

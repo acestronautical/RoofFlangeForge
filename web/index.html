@@ -229,6 +229,42 @@
                         </label>
                     </fieldset>
 
+                    <fieldset data-shape-only="circular rectangular strip">
+                        <legend>Bolt holes</legend>
+                        <label class="toggle">
+                            <input type="checkbox" name="bolt_holes" />
+                            <span>Add bolt holes</span>
+                        </label>
+                        <div data-bolts-only>
+                            <label data-shape-only="circular">
+                                Bolt count
+                                <input type="number" name="bolt_n_circ" value="8" min="1" step="1" />
+                            </label>
+                            <label data-shape-only="circular rectangular">
+                                Offset from center <span class="unit-suffix">(in)</span>
+                                <input type="number" name="bolt_offset" value="0" step="any" />
+                            </label>
+                            <label data-shape-only="rectangular">
+                                Bolts per side
+                                <input type="number" name="bolt_per_side" value="3" min="2" step="1" />
+                            </label>
+                            <label data-shape-only="strip">
+                                Bolts on
+                                <select name="bolt_place">
+                                    <option value="ribs">Every rib</option>
+                                    <option value="indents">Every indent</option>
+                                    <option value="both">Every rib and indent</option>
+                                    <option value="every-other-rib">Every other rib</option>
+                                    <option value="every-other-indent">Every other indent</option>
+                                </select>
+                            </label>
+                            <label>
+                                Bolt hole diameter <span class="unit-suffix">(in)</span>
+                                <input type="number" name="bolt_hole_d" value="0.25" min="0" step="any" />
+                            </label>
+                        </div>
+                    </fieldset>
+
                     <fieldset>
                         <legend>Placement</legend>
                         <label>

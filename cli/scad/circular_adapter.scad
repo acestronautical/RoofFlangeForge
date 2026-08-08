@@ -21,6 +21,7 @@
 
 include <trapezoidal_roof.scad>
 include <corrugated_roof.scad>
+include <bolt_pattern.scad>
 
 // -----------------------------------------------------------------------------
 // Roof profile: which cross-section to conform the underside to
@@ -40,6 +41,14 @@ main_thick  = roof_depth;                 // thickness of this piece above (tops
 // -----------------------------------------------------------------------------
 flange_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
 side         = "top";                     // "top" (outside of roof) or "bottom" (inside)
+
+// -----------------------------------------------------------------------------
+// Bolt holes (opt-in). See bolt_pattern.scad.
+// -----------------------------------------------------------------------------
+bolt_holes  = false;                      // set true to subtract a bolt pattern
+bolt_n      = 8;                          // number of bolts on the bolt circle
+bolt_pcd    = (ID + OD) / 2;              // pitch circle diameter (default: centered on the ring)
+bolt_hole_d = 0.250;                      // through-hole diameter
 
 // -----------------------------------------------------------------------------
 // Render controls
@@ -76,6 +85,13 @@ module circular_adapter() {
                     circle(d = ID);
                 }
         roof_cutter();
+        if (bolt_holes)
+            circular_bolt_pattern(
+                n       = bolt_n,
+                pcd     = bolt_pcd,
+                hole_d  = bolt_hole_d,
+                h       = 4 * (main_thick + roof_depth + sheet_thickness)
+            );
     }
 }
 

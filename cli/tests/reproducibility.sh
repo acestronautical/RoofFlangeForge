@@ -31,8 +31,11 @@ trap 'rm -rf "$TMP"' EXIT
 configs=(
     'circular_rib_top      :circular_adapter.scad         :flange_offset_x=0|side="top"'
     'circular_indent_bot   :circular_adapter.scad         :flange_offset_x=2.75|side="bottom"'
+    'circular_with_bolts   :circular_adapter.scad         :flange_offset_x=0|side="top"|bolt_holes=true'
     'rectangular_rib_top   :rectangular_adapter.scad      :flange_offset_x=0|side="top"'
+    'rectangular_with_bolts:rectangular_adapter.scad      :flange_offset_x=0|side="top"|bolt_holes=true'
     'strip_rib_top         :strip.scad                    :flange_offset_x=0|side="top"'
+    'strip_with_bolts      :strip.scad                    :flange_offset_x=0|side="top"|bolt_holes=true'
     'strip_corrugated      :strip.scad                    :roof_profile="corrugated"|flange_offset_x=0|side="top"'
     'trap_roof_preview     :trapezoidal_roof_preview.scad :flange_offset_x=0'
     'corr_roof_preview     :corrugated_roof_preview.scad  :flange_offset_x=0'
