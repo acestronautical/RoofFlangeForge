@@ -132,6 +132,14 @@ header p {
     z-index: 1;
 }
 
+.unit-suffix {
+    color: var(--muted);
+    opacity: 0.7;
+    font-weight: normal;
+    font-size: 0.85em;
+    margin-left: 0.25rem;
+}
+
 /* Custom checkbox for the bolt-holes toggle. Native browser checkboxes are
    inconsistent across platforms and clash with the rest of the dark UI. */
 label.toggle {

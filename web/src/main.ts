@@ -114,7 +114,7 @@ unitsSelect.addEventListener("change", () => {
         const val = Number(input.value);
         if (!Number.isNaN(val)) input.value = String(round(val * ratio, 4));
     });
-    const label = next === "mm" ? "(mm)" : "(in)";
+    const label = next === "mm" ? "millimeters" : "inches";
     form.querySelectorAll<HTMLSpanElement>(".unit-suffix").forEach((el) => {
         el.textContent = label;
     });
