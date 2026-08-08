@@ -14,6 +14,7 @@ const roofProfileSelect = form.elements.namedItem("roof_profile") as HTMLSelectE
 const renderBtn = document.getElementById("render") as HTMLButtonElement;
 const downloadBtn = document.getElementById("download") as HTMLButtonElement;
 const shareBtn = document.getElementById("share") as HTMLButtonElement;
+const toast = document.getElementById("toast") as HTMLDivElement;
 const status = document.getElementById("status") as HTMLParagraphElement;
 const dimsLine = document.getElementById("dims") as HTMLDivElement;
 const canvas = document.getElementById("preview") as HTMLCanvasElement;
@@ -308,15 +309,33 @@ applyParamsFromUrl();
 
 shareBtn.addEventListener("click", async () => {
     writeParamsToUrl();
+    const url = location.href;
     try {
-        await navigator.clipboard.writeText(location.href);
+        await navigator.clipboard.writeText(url);
+        showToast("Link copied to clipboard", url);
         shareBtn.classList.add("copied");
-        shareBtn.title = "Copied!";
-        setTimeout(() => {
-            shareBtn.classList.remove("copied");
-            shareBtn.title = "Copy share link";
-        }, 1200);
+        setTimeout(() => shareBtn.classList.remove("copied"), 1500);
     } catch {
-        window.prompt("Copy this link:", location.href);
+        showToast("Couldn\u2019t copy \u2014 select and copy manually:", url, 6000);
+        window.prompt("Copy this link:", url);
     }
 });
+
+let toastTimer: number | null = null;
+function showToast(title: string, body: string, durationMs = 2400): void {
+    toast.innerHTML = "";
+    const strong = document.createElement("strong");
+    strong.textContent = title;
+    const code = document.createElement("code");
+    code.textContent = body;
+    toast.append(strong, code);
+    toast.hidden = false;
+    // Force a reflow so the transition kicks in.
+    void toast.offsetWidth;
+    toast.classList.add("show");
+    if (toastTimer !== null) clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+        toast.classList.remove("show");
+        window.setTimeout(() => { toast.hidden = true; }, 200);
+    }, durationMs);
+}
