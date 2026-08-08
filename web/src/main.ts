@@ -14,6 +14,9 @@ const roofProfileSelect = form.elements.namedItem("roof_profile") as HTMLSelectE
 const renderBtn = document.getElementById("render") as HTMLButtonElement;
 const downloadBtn = document.getElementById("download") as HTMLButtonElement;
 const shareBtn = document.getElementById("share") as HTMLButtonElement;
+const helpBtn = document.getElementById("help") as HTMLButtonElement;
+const themeBtn = document.getElementById("theme") as HTMLButtonElement;
+const helpDialog = document.getElementById("help-dialog") as HTMLDialogElement;
 const toast = document.getElementById("toast") as HTMLDivElement;
 const status = document.getElementById("status") as HTMLParagraphElement;
 const dimsLine = document.getElementById("dims") as HTMLDivElement;
@@ -353,6 +356,29 @@ applyParamsFromUrl();
 if (new URLSearchParams(location.search).get("render") === "1") {
     form.requestSubmit();
 }
+
+helpBtn.addEventListener("click", () => helpDialog.showModal());
+helpDialog.querySelector<HTMLButtonElement>(".help-close")?.addEventListener(
+    "click", () => helpDialog.close());
+helpDialog.addEventListener("click", (ev) => {
+    // Click on the backdrop (the dialog element itself, not children) closes.
+    if (ev.target === helpDialog) helpDialog.close();
+});
+
+// Theme toggle. Persisted in localStorage; viewer background follows.
+type Theme = "dark" | "light";
+const THEME_BG: Record<Theme, number> = { dark: 0x1e2124, light: 0xd1d5db };
+function applyTheme(t: Theme): void {
+    document.documentElement.dataset.theme = t;
+    viewer.setBackgroundColor(THEME_BG[t]);
+}
+const savedTheme = (localStorage.getItem("theme") as Theme | null) ?? "dark";
+applyTheme(savedTheme);
+themeBtn.addEventListener("click", () => {
+    const next: Theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    localStorage.setItem("theme", next);
+    applyTheme(next);
+});
 
 shareBtn.addEventListener("click", async () => {
     writeParamsToUrl();

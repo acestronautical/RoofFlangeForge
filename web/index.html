@@ -13,17 +13,90 @@
                 <h1><a href="https://github.com/acestronautical/RoofFlangeForge" target="_blank" rel="noopener">Roof Flange Forge</a></h1>
                 <p>Generate a printable flange adapter for a ribbed sheet-metal roof.</p>
             </div>
-            <button type="button" id="share" class="icon-btn" title="Copy share link" aria-label="Copy share link">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="18" cy="5" r="3" />
-                    <circle cx="6" cy="12" r="3" />
-                    <circle cx="18" cy="19" r="3" />
-                    <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" />
-                    <line x1="15.4" y1="6.5" x2="8.6" y2="10.5" />
-                </svg>
-            </button>
+            <div class="header-actions">
+                <button type="button" id="theme" class="icon-btn" title="Toggle light/dark" aria-label="Toggle light/dark">
+                    <svg class="theme-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4" />
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                    </svg>
+                    <svg class="theme-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+                    </svg>
+                </button>
+                <button type="button" id="share" class="icon-btn" title="Copy share link" aria-label="Copy share link">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" />
+                        <line x1="15.4" y1="6.5" x2="8.6" y2="10.5" />
+                    </svg>
+                </button>
+                <button type="button" id="help" class="icon-btn" title="How this tool works" aria-label="How this tool works">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                </button>
+            </div>
             <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
         </header>
+
+        <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
+            <button type="button" class="help-close icon-btn" aria-label="Close">×</button>
+            <h2 id="help-title">How this tool works</h2>
+
+            <p>This app generates printable <strong>flange adapters</strong> whose underside is
+                shaped to conform to a periodic ribbed sheet-metal roof, so the printed part sits
+                flush against the roof rather than rocking on the rib peaks.</p>
+
+            <h3>Workflow</h3>
+            <ol>
+                <li>Pick a <strong>Shape</strong> — circular flange, rectangular flange, mounting
+                    strip, or a roof-profile preview.</li>
+                <li>Pick a <strong>Roof profile</strong> — trapezoidal ribs (most stamped body
+                    panels) or corrugated (sinusoidal, like barn tin).</li>
+                <li>Match the <strong>Roof</strong> dimensions to the actual metal you're mounting
+                    on. Measure a rib peak-to-peak with calipers and split it into rib width and
+                    indent widths.</li>
+                <li>Choose <strong>Center on: Rib</strong> or <strong>Indent</strong> depending on
+                    where the flange center lands on the periodic pattern; and <strong>Topside</strong>
+                    vs <strong>Underside</strong> for the side of the panel it mounts on.</li>
+                <li>Hit <em>Render STL</em>, review the 3D preview, then <em>Download STL</em>.</li>
+            </ol>
+
+            <h3>Topside vs. underside</h3>
+            <p>A single adapter is really two mating parts split along the roof surface: the
+                topside sits above the roof with pads that drop into the indents, and the
+                underside is a mirror piece that receives those pads from below. Print both,
+                sandwich the sheet metal between them, and bolt through.</p>
+
+            <h3>Print &amp; fitment tolerance</h3>
+            <p>The generated STL matches the nominal roof profile <em>exactly</em>. Real prints and
+                real sheet metal are noisier, so you'll almost always want to bake in some
+                clearance:</p>
+            <ul>
+                <li><strong>Loose over the ribs:</strong> nudge <em>Indent depth</em> up by
+                    0.2–0.4 mm and <em>Indent width at floor</em> up by a similar amount so the
+                    adapter drops onto the ribs without forcing.</li>
+                <li><strong>Snug pad-in-indent fit:</strong> pull <em>Indent width at top</em> down
+                    by 0.1–0.3 mm.</li>
+                <li><strong>Sheet-metal thickness:</strong> this controls the vertical gap between
+                    the topside and underside pieces — add 0.1–0.2 mm on top of the real gauge to
+                    account for paint, primer, and print squish.</li>
+                <li><strong>Corner radius at rib bends:</strong> real stamped panels have rounded
+                    transitions; too-sharp corners on the adapter will lift it off the plateau.
+                    Match this to the real bend radius on the panel, or slightly larger.</li>
+            </ul>
+            <p>Everything is parametric — no need to guess. Print a small test coupon (a short
+                strip that spans one rib), iterate on the tolerance values, then run the full
+                flange when the coupon slips on cleanly.</p>
+
+            <h3>Sharing</h3>
+            <p>The URL always reflects the current parameters, and hitting <em>Copy share link</em>
+                copies a link that reproduces the exact STL you're looking at.</p>
+        </dialog>
 
         <main>
             <section class="controls">
