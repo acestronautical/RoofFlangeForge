@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Roof Flange Forge</title>
+        <link rel="stylesheet" href="/src/style.css" />
+    </head>
+    <body>
+        <header>
+            <h1>Roof Flange Forge</h1>
+            <p>Generate a printable flange adapter for a ribbed sheet-metal roof.</p>
+        </header>
+
+        <main>
+            <section class="controls">
+                <form id="params" novalidate>
+                    <fieldset>
+                        <legend>Units</legend>
+                        <label>
+                            Enter values in
+                            <select name="units">
+                                <option value="in" selected>Inches</option>
+                                <option value="mm">Millimeters</option>
+                            </select>
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Shape</legend>
+                        <label>
+                            Render
+                            <select name="shape">
+                                <option value="circular">Circular flange (round cutout)</option>
+                                <option value="rectangular">Rectangular flange (14x14-style)</option>
+                                <option value="roof">Roof (visualize the profile)</option>
+                            </select>
+                        </label>
+
+                        <div data-shape="circular">
+                            <label>
+                                Inner diameter <span class="unit-suffix">(in)</span>
+                                <input type="number" name="ID" value="6.5" step="any" />
+                            </label>
+                            <label>
+                                Outer diameter <span class="unit-suffix">(in)</span>
+                                <input type="number" name="OD" value="10" step="any" />
+                            </label>
+                        </div>
+
+                        <div data-shape="rectangular" hidden>
+                            <label>
+                                Inner width X <span class="unit-suffix">(in)</span>
+                                <input type="number" name="inner_x" value="14" step="any" />
+                            </label>
+                            <label>
+                                Inner width Y <span class="unit-suffix">(in)</span>
+                                <input type="number" name="inner_y" value="14" step="any" />
+                            </label>
+                            <label>
+                                Outer width X <span class="unit-suffix">(in)</span>
+                                <input type="number" name="outer_x" value="15.5" step="any" />
+                            </label>
+                            <label>
+                                Outer width Y <span class="unit-suffix">(in)</span>
+                                <input type="number" name="outer_y" value="15.5" step="any" />
+                            </label>
+                        </div>
+
+                        <div data-shape="roof" hidden>
+                            <label>
+                                Preview extent, half-width <span class="unit-suffix">(in)</span>
+                                <input type="number" name="preview_xy" value="12" step="any" />
+                            </label>
+                            <label>
+                                Preview sheet thickness <span class="unit-suffix">(in)</span>
+                                <input type="number" name="preview_thickness" value="0.1" step="any" />
+                            </label>
+                        </div>
+
+                        <label data-shape-only="circular rectangular">
+                            Ring thickness <span class="unit-suffix">(in)</span>
+                            <input type="number" name="main_thick" value="0.5" step="any" />
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Roof</legend>
+                        <label>
+                            Rib plateau width <span class="unit-suffix">(in)</span>
+                            <input type="number" name="rib_width" value="3.5" step="any" />
+                        </label>
+                        <label>
+                            Indent width at top <span class="unit-suffix">(in)</span>
+                            <input type="number" name="indent_top_w" value="2" step="any" />
+                        </label>
+                        <label>
+                            Indent width at floor <span class="unit-suffix">(in)</span>
+                            <input type="number" name="indent_bot_w" value="1.5" step="any" />
+                        </label>
+                        <label>
+                            Indent depth <span class="unit-suffix">(in)</span>
+                            <input type="number" name="indent_depth" value="0.5" step="any" />
+                        </label>
+                        <label data-shape-only="circular rectangular">
+                            Sheet-metal thickness <span class="unit-suffix">(in)</span>
+                            <input type="number" name="sheet_thickness" value="0.032" step="any" />
+                        </label>
+                        <label>
+                            Corner radius at rib bends <span class="unit-suffix">(in)</span>
+                            <input type="number" name="corner_r" value="0.0625" step="any" />
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Placement</legend>
+                        <label>
+                            Center on
+                            <select name="mount">
+                                <option value="rib">Rib (cutout straddles a raised rib)</option>
+                                <option value="indent">Indent (cutout straddles an indent)</option>
+                            </select>
+                        </label>
+                        <label data-shape-only="circular rectangular">
+                            Side
+                            <select name="side">
+                                <option value="top">Topside (mounts above the roof)</option>
+                                <option value="bottom">Underside (mounts below the roof)</option>
+                            </select>
+                        </label>
+                    </fieldset>
+
+                    <div class="actions">
+                        <button type="submit" id="render">Render STL</button>
+                        <button type="button" id="download" disabled>Download STL</button>
+                    </div>
+                    <p id="status" class="status" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+
+            <section class="viewer">
+                <canvas id="preview"></canvas>
+                <div class="overlay">
+                    <div class="overlay-line">Grid: 1 in / 25.4 mm per cell</div>
+                    <div class="overlay-line" id="dims">Model: (render to see)</div>
+                </div>
+            </section>
+        </main>
+
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>

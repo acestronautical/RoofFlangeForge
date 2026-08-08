@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Python venv (used only for local scripting; not part of the design)
+.venv/
+__pycache__/
+*.pyc
+
+# OpenSCAD scratch / editor backup files
+*.bak
+*.scad~
+
+# Ignore generated STL files
+*.stl
