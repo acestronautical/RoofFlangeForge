@@ -12,3 +12,7 @@ __pycache__/
 
 # Ignore generated STL files
 *.stl
+
+# Vite build output
+web/dist/
+web/node_modules/

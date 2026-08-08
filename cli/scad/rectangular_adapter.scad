@@ -1,14 +1,15 @@
 // =============================================================================
 // rectangular_adapter.scad
 //
-// A rectangular mounting adapter (14x14-style MaxxFan family) that conforms
+// A rectangular mounting adapter for a framed opening (14x14" defaults suit
+// MaxxFan-family fans; override inner_x/y for anything else) that conforms
 // to a periodic trapezoidal-rib roof (see trapezoidal_roof.scad). Structure
 // is identical to circular_adapter.scad; only the blank shape differs
 // (rectangular frame instead of an annulus).
 //
-// Topside and underside variants are the two halves of a single cylinder
-// (well, rectangular prism) split along the roof surface -- see
-// circular_adapter.scad for the full explanation.
+// Topside and underside variants are the two halves of a single rectangular
+// prism split along the roof surface -- see circular_adapter.scad for the
+// full explanation.
 //
 // All dimensions in inches; final scale converts to millimeters.
 // =============================================================================
@@ -25,17 +26,17 @@ roof_depth   = (roof_profile == "corrugated") ? corr_depth : indent_depth;
 // -----------------------------------------------------------------------------
 // Adapter shape
 // -----------------------------------------------------------------------------
-inner_x     = 14.000;                     // fan cutout size in X (across ribs)
-inner_y     = 14.000;                     // fan cutout size in Y (along ribs)
+inner_x     = 14.000;                     // opening size in X (across ribs)
+inner_y     = 14.000;                     // opening size in Y (along ribs)
 outer_x     = 15.500;                     // overall X extent
 outer_y     = 15.500;                     // overall Y extent
 main_thick  = roof_depth;                 // thickness of this piece above/below the rib plateau plane
 
 // -----------------------------------------------------------------------------
-// Position of the fan center on the roof and which side the adapter mounts on
+// Position of the opening center on the roof and which side the adapter mounts on
 // -----------------------------------------------------------------------------
 fan_offset_x = 0;                         // 0 = rib-centered; indent_center_x = indent-centered
-side         = "top";                     // "top" (outside of vehicle) or "bottom" (inside cabin)
+side         = "top";                     // "top" (outside of roof) or "bottom" (inside)
 
 // -----------------------------------------------------------------------------
 // Render controls

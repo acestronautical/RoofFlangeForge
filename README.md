@@ -19,7 +19,8 @@ server. Also usable from the command line if you have OpenSCAD.
 - **Circular flange** -- round mounting ring for round-flange fittings (Maxxair
   Dome, most 6"-7" vents, roof jacks, small skylights). Choose ID / OD / ring
   thickness.
-- **Rectangular flange** -- square or rectangular frame for 14x14" MaxxFan-family
+- **Rectangular flange** -- square or rectangular frame for a framed opening
+  (defaults suit MaxxFan-family 14x14" fans; override inner_x/y for anything else)
   vents and similarly-shaped roof openings.
 - **Roof preview** -- sheet-metal-style visualization of the roof cross-section.
   Handy for eyeballing a profile before printing anything.
