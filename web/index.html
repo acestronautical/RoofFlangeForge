@@ -224,6 +224,24 @@
                         </label>
                     </fieldset>
 
+                    <fieldset>
+                        <legend>Placement</legend>
+                        <label>
+                            Center on
+                            <select name="mount">
+                                <option value="rib">Rib (cutout straddles a raised rib)</option>
+                                <option value="indent">Indent (cutout straddles an indent)</option>
+                            </select>
+                        </label>
+                        <label data-shape-only="circular rectangular strip">
+                            Side
+                            <select name="side">
+                                <option value="top">Topside (mounts above the roof)</option>
+                                <option value="bottom">Underside (mounts below the roof)</option>
+                            </select>
+                        </label>
+                    </fieldset>
+
                     <fieldset data-shape-only="circular rectangular strip">
                         <legend>Bolt holes</legend>
                         <label class="toggle">
@@ -258,24 +276,6 @@
                                 <input type="number" name="bolt_hole_d" value="0.25" min="0" step="any" />
                             </label>
                         </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Placement</legend>
-                        <label>
-                            Center on
-                            <select name="mount">
-                                <option value="rib">Rib (cutout straddles a raised rib)</option>
-                                <option value="indent">Indent (cutout straddles an indent)</option>
-                            </select>
-                        </label>
-                        <label data-shape-only="circular rectangular strip">
-                            Side
-                            <select name="side">
-                                <option value="top">Topside (mounts above the roof)</option>
-                                <option value="bottom">Underside (mounts below the roof)</option>
-                            </select>
-                        </label>
                     </fieldset>
 
                     <div class="actions">
