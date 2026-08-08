@@ -21,13 +21,13 @@ $fn = 240;
 preview_xy      = 12;
 sheet_thickness = 0.100;
 
-fan_offset_x = 0;                        // 0 = rib-centered; indent_center_x = indent-centered
+flange_offset_x = 0;                        // 0 = rib-centered; indent_center_x = indent-centered
 
 IN2MM = 25.4;
 
 scale([IN2MM, IN2MM, IN2MM])
     trapezoidal_roof_sheet(
-        fan_offset_x    = fan_offset_x,
+        flange_offset_x    = flange_offset_x,
         cut_xy          = preview_xy,
         sheet_thickness = sheet_thickness
     );

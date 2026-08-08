@@ -28,15 +28,15 @@ corr_depth = 0.500;    // peak-to-trough vertical distance
 corr_indent_center_x = corr_pitch / 2;   // half-wavelength from a peak = trough centerline
 
 // =============================================================================
-// corrugated_roof_cutter(fan_offset_x, pitch, depth, cut_xy, cut_z, side,
+// corrugated_roof_cutter(flange_offset_x, pitch, depth, cut_xy, cut_z, side,
 //                       thickness, samples_per_pitch)
 //
-// See trapezoidal_roof_cutter for parameter semantics. `fan_offset_x = 0`
-// puts a peak (rib) at X = 0; `fan_offset_x = corr_indent_center_x` puts a
+// See trapezoidal_roof_cutter for parameter semantics. `flange_offset_x = 0`
+// puts a peak (rib) at X = 0; `flange_offset_x = corr_indent_center_x` puts a
 // trough (indent) at X = 0.
 // =============================================================================
 module corrugated_roof_cutter(
-    fan_offset_x      = 0,
+    flange_offset_x      = 0,
     pitch             = corr_pitch,
     depth             = corr_depth,
     cut_xy            = 40,
@@ -50,7 +50,7 @@ module corrugated_roof_cutter(
         rotate([90, 0, 0])
             linear_extrude(height = 2*cut_xy, center = true)
                 corrugated_roof_profile_2d(
-                    fan_offset_x      = fan_offset_x,
+                    flange_offset_x      = flange_offset_x,
                     pitch             = pitch,
                     depth             = depth,
                     cut_xy            = cut_xy,
@@ -65,7 +65,7 @@ module corrugated_roof_cutter(
 // trough. Enough samples per wavelength that the polygon reads as a smooth
 // curve after linear_extrude.
 module corrugated_roof_profile_2d(
-    fan_offset_x,
+    flange_offset_x,
     pitch,
     depth,
     cut_xy,
@@ -83,7 +83,7 @@ module corrugated_roof_profile_2d(
     surface_ltr = [
         for (i = [0 : n])
             let (x = -cut_xy + i * step)
-            [x, top_y - amp + amp * cos(360 * (x - fan_offset_x) / pitch)]
+            [x, top_y - amp + amp * cos(360 * (x - flange_offset_x) / pitch)]
     ];
 
     pts = (side == "top")
@@ -106,7 +106,7 @@ module corrugated_roof_profile_2d(
 // corrugated_roof_cutter, closed to a bottom offset down by `sheet_thickness`.
 // =============================================================================
 module corrugated_roof_sheet(
-    fan_offset_x      = 0,
+    flange_offset_x      = 0,
     pitch             = corr_pitch,
     depth             = corr_depth,
     cut_xy            = 12,
@@ -116,7 +116,7 @@ module corrugated_roof_sheet(
     rotate([90, 0, 0])
         linear_extrude(height = 2*cut_xy, center = true)
             corrugated_roof_sheet_2d(
-                fan_offset_x      = fan_offset_x,
+                flange_offset_x      = flange_offset_x,
                 pitch             = pitch,
                 depth             = depth,
                 cut_xy            = cut_xy,
@@ -126,7 +126,7 @@ module corrugated_roof_sheet(
 }
 
 module corrugated_roof_sheet_2d(
-    fan_offset_x,
+    flange_offset_x,
     pitch,
     depth,
     cut_xy,
@@ -142,7 +142,7 @@ module corrugated_roof_sheet_2d(
     top_ltr = [
         for (i = [0 : n])
             let (x = -cut_xy + i * step)
-            [x, top_y - amp + amp * cos(360 * (x - fan_offset_x) / pitch)]
+            [x, top_y - amp + amp * cos(360 * (x - flange_offset_x) / pitch)]
     ];
     // Bottom face parallels the top by shifting each Y down by sheet_thickness.
     bot_rtl = [ for (i = [n : -1 : 0]) [ top_ltr[i][0], top_ltr[i][1] - sheet_thickness ] ];

@@ -32,7 +32,7 @@ roof_pitch          = rib_width + indent_top_w;                    // rib CL to 
 indent_center_x     = rib_width/2 + indent_top_w/2;                // rib CL to adjacent indent CL
 
 // =============================================================================
-// trapezoidal_roof_cutter(fan_offset_x, top_w, bot_w, depth, r,
+// trapezoidal_roof_cutter(flange_offset_x, top_w, bot_w, depth, r,
 //                         cut_xy, cut_z, side)
 //
 // A solid block on one side of the roof surface, sized so the roof is fully
@@ -43,7 +43,7 @@ indent_center_x     = rib_width/2 + indent_top_w/2;                // rib CL to 
 // level and drops into trapezoidal valleys at every indent centerline.
 //
 // Parameters:
-//   fan_offset_x - horizontal shift of the roof pattern under the fan:
+//   flange_offset_x - horizontal shift of the roof pattern under the flange:
 //                    0                 -> a rib centerline sits at X = 0
 //                    indent_center_x   -> an indent centerline sits at X = 0
 //                    any real value    -> arbitrary off-center placement
@@ -60,7 +60,7 @@ indent_center_x     = rib_width/2 + indent_top_w/2;                // rib CL to 
 //                             (subtract to build an underside adapter)
 // =============================================================================
 module trapezoidal_roof_cutter(
-    fan_offset_x = 0,
+    flange_offset_x = 0,
     top_w        = indent_top_w,
     bot_w        = indent_bot_w,
     depth        = indent_depth,
@@ -78,7 +78,7 @@ module trapezoidal_roof_cutter(
         rotate([90, 0, 0])
             linear_extrude(height = 2*cut_xy, center = true)
                 trapezoidal_roof_profile_2d(
-                    fan_offset_x = fan_offset_x,
+                    flange_offset_x = flange_offset_x,
                     top_w        = top_w,
                     bot_w        = bot_w,
                     depth        = depth,
@@ -93,7 +93,7 @@ module trapezoidal_roof_cutter(
 // The rib-to-sidewall bends are chamfered directly in the surface point list
 // (see trapezoidal_roof_surface_pts), so the polygon here is already smooth.
 module trapezoidal_roof_profile_2d(
-    fan_offset_x,
+    flange_offset_x,
     top_w,
     bot_w,
     depth,
@@ -105,7 +105,7 @@ module trapezoidal_roof_profile_2d(
     top_y = 0.010;             // small overlap into positive Z (a hair above the rib plateau)
 
     surface_ltr = trapezoidal_roof_surface_pts(
-        fan_offset_x = fan_offset_x,
+        flange_offset_x = flange_offset_x,
         top_w        = top_w,
         bot_w        = bot_w,
         depth        = depth,
@@ -133,12 +133,12 @@ module trapezoidal_roof_profile_2d(
 // Y in the 2D plane will become Z after the caller's rotate([90,0,0]).
 // When r > 0, each rib bend is replaced by two chamfer points offset by r
 // along the two adjacent edges -- a straight-line chamfer of the corner.
-function trapezoidal_roof_surface_pts(fan_offset_x, top_w, bot_w, depth, cut_xy, top_y, r = 0) =
+function trapezoidal_roof_surface_pts(flange_offset_x, top_w, bot_w, depth, cut_xy, top_y, r = 0) =
     let (
         n_max     = ceil(cut_xy / roof_pitch) + 1,
         indent_xs = [
             for (k = [-n_max : n_max])
-                let (ix = indent_center_x + k * roof_pitch - fan_offset_x)
+                let (ix = indent_center_x + k * roof_pitch - flange_offset_x)
                 if (ix - top_w/2 >= -cut_xy && ix + top_w/2 <= cut_xy) ix
         ],
         sharp = concat(
@@ -193,7 +193,7 @@ function chamfer_corner(a, b, c, r) =
 // (~0.032") to nothing.
 // =============================================================================
 module trapezoidal_roof_sheet(
-    fan_offset_x    = 0,
+    flange_offset_x    = 0,
     top_w           = indent_top_w,
     bot_w           = indent_bot_w,
     depth           = indent_depth,
@@ -203,7 +203,7 @@ module trapezoidal_roof_sheet(
     rotate([90, 0, 0])
         linear_extrude(height = 2*cut_xy, center = true)
             trapezoidal_roof_sheet_2d(
-                fan_offset_x    = fan_offset_x,
+                flange_offset_x    = flange_offset_x,
                 top_w           = top_w,
                 bot_w           = bot_w,
                 depth           = depth,
@@ -212,11 +212,11 @@ module trapezoidal_roof_sheet(
             );
 }
 
-module trapezoidal_roof_sheet_2d(fan_offset_x, top_w, bot_w, depth, cut_xy, sheet_thickness) {
+module trapezoidal_roof_sheet_2d(flange_offset_x, top_w, bot_w, depth, cut_xy, sheet_thickness) {
     top_y = 0.010;
 
     surface_ltr = trapezoidal_roof_surface_pts(
-        fan_offset_x = fan_offset_x,
+        flange_offset_x = flange_offset_x,
         top_w        = top_w,
         bot_w        = bot_w,
         depth        = depth,

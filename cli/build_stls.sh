@@ -56,7 +56,7 @@ build_circular() {
     echo "==> circular ${mount}-centered ${face} ID=${id}  ->  $(basename "$out")"
     "$OSC" \
         -D "ID=${id}" \
-        -D "fan_offset_x=${offset}" \
+        -D "flange_offset_x=${offset}" \
         -D "side=\"${side}\"" \
         -o "$out" "$CODE_DIR/circular_adapter.scad" 2>&1 | tail -6
 }
@@ -69,7 +69,7 @@ build_rectangular() {
     out="$OUT_DIR/rectangular_${mount}-centered_${face}_14x14.stl"
     echo "==> rectangular ${mount}-centered ${face}  ->  $(basename "$out")"
     "$OSC" \
-        -D "fan_offset_x=${offset}" \
+        -D "flange_offset_x=${offset}" \
         -D "side=\"${side}\"" \
         -o "$out" "$CODE_DIR/rectangular_adapter.scad" 2>&1 | tail -6
 }
@@ -82,7 +82,7 @@ build_strip() {
     out="$OUT_DIR/strip_${mount}-centered_${face}_15.5x3.stl"
     echo "==> strip ${mount}-centered ${face}  ->  $(basename "$out")"
     "$OSC" \
-        -D "fan_offset_x=${offset}" \
+        -D "flange_offset_x=${offset}" \
         -D "side=\"${side}\"" \
         -o "$out" "$CODE_DIR/strip.scad" 2>&1 | tail -6
 }
