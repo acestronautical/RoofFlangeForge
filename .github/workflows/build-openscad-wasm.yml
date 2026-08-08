@@ -31,6 +31,19 @@ jobs:
                   path: openscad-wasm
                   submodules: recursive
 
+            - name: Patch flaky mirrors
+              working-directory: openscad-wasm
+              # gmplib.org routinely rate-limits or blocks CI IPs; swap in the
+              # GNU FTP mirror, which is far more reliable from GitHub runners.
+              # Also make every wget in the Makefile retry hard so a transient
+              # blip doesn't kill a 30-minute build.
+              run: |
+                  sed -i \
+                      -e 's|https://gmplib.org/download/gmp/|https://ftp.gnu.org/gnu/gmp/|g' \
+                      Makefile
+                  sed -i -E 's|\bwget +-O|wget --tries=5 --timeout=30 --waitretry=15 -O|g' Makefile
+                  grep -E "gmp-6\\.3\\.0|wget --tries" Makefile || true
+
             - name: Build openscad-wasm
               working-directory: openscad-wasm
               # The Makefile does a Docker-based Emscripten build; the runner
