@@ -26,9 +26,14 @@
   "dependencies": {
     "three": "^0.185.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/acestronautical/RoofFlangeForge.git"
+  },
   "build": {
     "appId": "com.acestronautical.roofflangeforge",
     "productName": "Roof Flange Forge",
+    "publish": null,
     "directories": {
       "output": "release"
     },
