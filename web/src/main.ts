@@ -98,13 +98,35 @@ const STEP_MM: Record<string, number> = {
     bolt_pcd: 5, bolt_inner_distance: 1, bolt_hole_d: 0.5,
 };
 function applyStepsForUnit(unit: Unit): void {
-    const table = unit === "mm" ? STEP_MM : STEP_IN;
+    // HTML step validation flags any typed value that isn't an exact
+    // multiple of `step` as :invalid -- painful for typed measurements
+    // like 3.425 with step 0.125. Force step="any" for validation and
+    // handle Arrow-key stepping manually below with per-field increments.
+    void unit;
     form.querySelectorAll<HTMLInputElement>('input[type="number"]').forEach((input) => {
-        const s = table[input.name];
-        input.step = s !== undefined ? String(s) : "any";
+        // Integer counters keep their HTML-provided step (e.g. step="1").
+        if (input.name === "bolt_n_circ" || input.name === "bolt_per_side") return;
+        input.step = "any";
     });
 }
 applyStepsForUnit(currentUnit);
+
+// Arrow-key stepping with per-field increments (STEP_IN / STEP_MM).
+form.addEventListener("keydown", (ev) => {
+    const t = ev.target;
+    if (!(t instanceof HTMLInputElement) || t.type !== "number") return;
+    if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown") return;
+    if (t.name === "bolt_n_circ" || t.name === "bolt_per_side") return;
+    const table = currentUnit === "mm" ? STEP_MM : STEP_IN;
+    const step = table[t.name];
+    if (step === undefined) return;
+    ev.preventDefault();
+    const current = Number(t.value);
+    const base = Number.isNaN(current) ? 0 : current;
+    const direction = ev.key === "ArrowUp" ? 1 : -1;
+    t.value = String(round(base + direction * step, 6));
+    t.dispatchEvent(new Event("input", { bubbles: true }));
+});
 
 unitsSelect.addEventListener("change", () => {
     const next = unitsSelect.value as Unit;
