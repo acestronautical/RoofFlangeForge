@@ -77,25 +77,24 @@
                 sandwich the sheet metal between them, and bolt through.</p>
 
             <h3>Print &amp; fitment tolerance</h3>
-            <p>The generated STL matches the nominal roof profile <em>exactly</em>. Real prints and
-                real sheet metal are noisier, so you'll almost always want to bake in some
-                clearance:</p>
+            <p>Real prints and real sheet metal never match a nominal profile exactly, so a
+                zero-tolerance adapter binds on the ribs. The <strong>Tolerance</strong> section
+                bakes clearance into the printed pads without touching the opening you specified
+                &mdash; the flange ID/OD or inner/outer rectangle stays exact so it still fits
+                the fan, vent, or fitting you&rsquo;re framing.</p>
             <ul>
-                <li><strong>Loose over the ribs:</strong> nudge <em>Indent depth</em> up by
-                    0.2–0.4 mm and <em>Indent width at floor</em> up by a similar amount so the
-                    adapter drops onto the ribs without forcing.</li>
-                <li><strong>Snug pad-in-indent fit:</strong> pull <em>Indent width at top</em> down
-                    by 0.1–0.3 mm.</li>
-                <li><strong>Sheet-metal thickness:</strong> this controls the vertical gap between
-                    the topside and underside pieces — add 0.1–0.2 mm on top of the real gauge to
-                    account for paint, primer, and print squish.</li>
-                <li><strong>Corner radius at rib bends:</strong> real stamped panels have rounded
+                <li><strong>Tolerance</strong>: shrinks the modeled rib-mating pads on every side
+                    (and, for corrugated, undersizes the wave amplitude). 0.010&ndash;0.020&nbsp;in
+                    (0.25&ndash;0.5&nbsp;mm) is a good FDM starting point; go higher for rough or
+                    weathered panels.</li>
+                <li><strong>Corner radius at rib bends</strong>: real stamped panels have rounded
                     transitions; too-sharp corners on the adapter will lift it off the plateau.
                     Match this to the real bend radius on the panel, or slightly larger.</li>
             </ul>
-            <p>Everything is parametric — no need to guess. Print a small test coupon (a short
-                strip that spans one rib), iterate on the tolerance values, then run the full
-                flange when the coupon slips on cleanly.</p>
+            <p>The sheet-metal gap between the topside and underside pieces is fixed at 0.032&nbsp;in
+                (typical stamped body panel).</p>
+            <p>Print a small test coupon (a short strip that spans one rib), iterate on the
+                clearance value, then run the full flange when the coupon slips on cleanly.</p>
 
             <h3>Sharing</h3>
             <p>The URL always reflects the current parameters, and hitting <em>Copy share link</em>
@@ -110,7 +109,7 @@
                     <fieldset>
                         <legend>Shape</legend>
                         <label>
-                            Render
+                            Render <span class="hint-icon" data-tooltip="Which kind of adapter to generate. Circular is a round-cutout flange, rectangular a framed opening (e.g. MaxxFan), strip a solid mounting bar with no cutout, roof a preview of the sheet-metal profile itself.">?</span>
                             <select name="shape">
                                 <option value="circular">Circular flange (round cutout)</option>
                                 <option value="rectangular">Rectangular flange (framed opening)</option>
@@ -120,67 +119,67 @@
                         </label>
 
                         <div data-shape="circular">
-                            <label title="Inner diameter of the flange ring. Must be at least the diameter of the opening you're framing (fan shroud, exhaust vent, etc.).">
-                                Inner diameter <span class="unit-suffix">inches</span>
+                            <label>
+                                Inner diameter <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Inner diameter of the flange ring. Must be at least the diameter of the opening you're framing (fan shroud, exhaust vent, etc.).">?</span>
                                 <input type="number" name="ID" value="6.5" min="0" step="any" />
                             </label>
-                            <label title="Outer diameter of the flange ring. Bigger = more material to fasten through and better sealing area.">
-                                Outer diameter <span class="unit-suffix">inches</span>
+                            <label>
+                                Outer diameter <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Outer diameter of the flange ring. Bigger = more material to fasten through and better sealing area.">?</span>
                                 <input type="number" name="OD" value="10" min="0" step="any" />
                             </label>
                         </div>
 
                         <div data-shape="rectangular" hidden>
                             <label>
-                                Inner width X <span class="unit-suffix">inches</span>
+                                Inner width X <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Opening size across the ribs (X). Must match the framed hole in the roof exactly -- this dimension is never scaled by tolerance.">?</span>
                                 <input type="number" name="inner_x" value="14" min="0" step="any" />
                             </label>
                             <label>
-                                Inner width Y <span class="unit-suffix">inches</span>
+                                Inner width Y <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Opening size along the ribs (Y). Must match the framed hole in the roof exactly.">?</span>
                                 <input type="number" name="inner_y" value="14" min="0" step="any" />
                             </label>
                             <label>
-                                Outer width X <span class="unit-suffix">inches</span>
+                                Outer width X <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Overall X extent of the flange plate. The (outer - inner) / 2 gap on each side is where the bolts and sealing surface live.">?</span>
                                 <input type="number" name="outer_x" value="15.5" min="0" step="any" />
                             </label>
                             <label>
-                                Outer width Y <span class="unit-suffix">inches</span>
+                                Outer width Y <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Overall Y extent of the flange plate.">?</span>
                                 <input type="number" name="outer_y" value="15.5" min="0" step="any" />
                             </label>
                         </div>
 
                         <div data-shape="strip" hidden>
                             <label>
-                                Length (across ribs) <span class="unit-suffix">inches</span>
+                                Length (across ribs) <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Length of the strip spanning across the ribs (X). Should cover an integer-ish number of pitches so both ends land on a rib.">?</span>
                                 <input type="number" name="strip_x" value="15.5" min="0" step="any" />
                             </label>
                             <label>
-                                Width (along ribs) <span class="unit-suffix">inches</span>
+                                Width (along ribs) <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Width of the strip along the rib direction (Y). Narrow strips are more flexible, wide strips are stiffer.">?</span>
                                 <input type="number" name="strip_y" value="3" min="0" step="any" />
                             </label>
                         </div>
 
                         <div data-shape="roof" hidden>
                             <label>
-                                Preview extent, half-width <span class="unit-suffix">inches</span>
+                                Preview extent, half-width <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Half-width of the roof-profile preview STL. Preview-only; doesn't affect adapters.">?</span>
                                 <input type="number" name="preview_xy" value="12" min="0" step="any" />
                             </label>
                             <label>
-                                Preview sheet thickness <span class="unit-suffix">inches</span>
+                                Preview sheet thickness <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Visualization thickness for the preview sheet. Exaggerated for readability -- not physically accurate.">?</span>
                                 <input type="number" name="preview_thickness" value="0.1" min="0" step="any" />
                             </label>
                         </div>
 
-                        <label data-shape-only="circular rectangular strip" title="Total thickness of the flange material above the roof plateau plane. Thicker = stiffer part, more filament, longer print.">
-                            Thickness <span class="unit-suffix">inches</span>
+                        <label data-shape-only="circular rectangular strip">
+                            Thickness <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Total thickness of the flange material above the roof plateau plane. Thicker = stiffer part, more filament, longer print.">?</span>
                             <input type="number" name="main_thick" value="0.25" min="0" step="any" />
                         </label>
                     </fieldset>
 
                     <fieldset>
                         <legend>Roof</legend>
-                        <label title="The cross-section shape of the sheet metal you're mounting on.">
-                            Profile
+                        <label>
+                            Profile <span class="hint-icon" data-tooltip="The cross-section shape of the sheet metal you're mounting on.">?</span>
                             <select name="roof_profile">
                                 <option value="trapezoidal">Trapezoidal ribs (stamped body panel)</option>
                                 <option value="corrugated">Corrugated (sinusoidal, e.g. barn tin)</option>
@@ -188,41 +187,37 @@
                         </label>
 
                         <div data-roof-profile="trapezoidal">
-                            <label title="Width of the flat top of each rib (the raised, load-bearing surface between valleys).">
-                                Rib plateau width <span class="unit-suffix">inches</span>
+                            <label>
+                                Rib plateau width <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Width of the flat top of each rib (the raised, load-bearing surface between valleys).">?</span>
                                 <input type="number" name="rib_width" value="3.5" min="0" step="any" />
                             </label>
-                            <label title="Width of the indent measured at the rib-plateau level (top of the trapezoid). Larger than the floor width because the sidewalls angle inward.">
-                                Indent width at top <span class="unit-suffix">inches</span>
+                            <label>
+                                Indent width at top <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Width of the indent measured at the rib-plateau level (top of the trapezoid). Larger than the floor width because the sidewalls angle inward.">?</span>
                                 <input type="number" name="indent_top_w" value="2" min="0" step="any" />
                             </label>
-                            <label title="Width of the indent at its floor (bottom of the trapezoid). Narrower than the top width.">
-                                Indent width at floor <span class="unit-suffix">inches</span>
+                            <label>
+                                Indent width at floor <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Width of the indent at its floor (bottom of the trapezoid). Narrower than the top width.">?</span>
                                 <input type="number" name="indent_bot_w" value="1.5" min="0" step="any" />
                             </label>
-                            <label title="Vertical drop from the rib plateau down to the indent floor.">
-                                Indent depth <span class="unit-suffix">inches</span>
+                            <label>
+                                Indent depth <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Vertical drop from the rib plateau down to the indent floor.">?</span>
                                 <input type="number" name="indent_depth" value="0.5" min="0" step="any" />
                             </label>
-                            <label title="Chamfer size at each rib-to-sidewall bend. Match this to the actual bend radius on the panel; too sharp and the adapter lifts off the plateau.">
-                                Corner radius at rib bends <span class="unit-suffix">inches</span>
+                            <label>
+                                Corner radius at rib bends <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Chamfer size at each rib-to-sidewall bend. Match this to the actual bend radius on the panel; too sharp and the adapter lifts off the plateau.">?</span>
                                 <input type="number" name="corner_r" value="0.0625" min="0" step="any" />
                             </label>
                         </div>
                         <div data-roof-profile="corrugated" hidden>
-                            <label title="Distance from one wave peak to the next (one full wavelength). Ag-panel corrugated tin is usually 2.667 inches.">
-                                Corrugation pitch (peak-to-peak) <span class="unit-suffix">inches</span>
+                            <label>
+                                Corrugation pitch (peak-to-peak) <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Distance from one wave peak to the next (one full wavelength). Ag-panel corrugated tin is usually 2.667 inches.">?</span>
                                 <input type="number" name="corr_pitch" value="2.667" min="0" step="any" />
                             </label>
-                            <label title="Vertical distance from a wave peak to a wave trough. Usually ~0.5 inch on standard corrugated panels.">
-                                Corrugation depth (peak-to-trough) <span class="unit-suffix">inches</span>
+                            <label>
+                                Corrugation depth (peak-to-trough) <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Vertical distance from a wave peak to a wave trough. Usually ~0.5 inch on standard corrugated panels.">?</span>
                                 <input type="number" name="corr_depth" value="0.5" min="0" step="any" />
                             </label>
                         </div>
-                        <label data-shape-only="circular rectangular strip" title="Gauge of the actual sheet metal you're mounting on. Sets the gap the topside and underside pieces leave for the panel; add 0.005-0.010 inch on top of the real gauge to account for paint and print squish.">
-                            Sheet-metal thickness <span class="unit-suffix">inches</span>
-                            <input type="number" name="sheet_thickness" value="0.032" min="0" step="any" />
-                        </label>
 
                         <details class="diagram-toggle">
                             <summary>Show diagram</summary>
@@ -279,15 +274,15 @@
 
                     <fieldset>
                         <legend>Placement</legend>
-                        <label title="Which feature of the periodic roof pattern the flange center sits over. 'Rib' puts a raised rib right under the middle; 'Indent' puts a valley there instead.">
-                            Center on
+                        <label>
+                            Center on <span class="hint-icon" data-tooltip="Which feature of the periodic roof pattern the flange center sits over. 'Rib' puts a raised rib right under the middle; 'Indent' puts a valley there instead.">?</span>
                             <select name="mount">
                                 <option value="rib">Rib (cutout straddles a raised rib)</option>
                                 <option value="indent">Indent (cutout straddles an indent)</option>
                             </select>
                         </label>
-                        <label data-shape-only="circular rectangular strip" title="'Topside' is the outside piece that clamps down from above; 'Underside' is the inside piece that receives the pads. 'Both' renders both pieces side by side in one STL, ready for a single print job.">
-                            Side
+                        <label data-shape-only="circular rectangular strip">
+                            Side <span class="hint-icon" data-tooltip="'Topside' is the outside piece that clamps down from above; 'Underside' is the inside piece that receives the pads. 'Both' renders both pieces side by side in one STL, ready for a single print job.">?</span>
                             <select name="side">
                                 <option value="top">Topside (mounts above the roof)</option>
                                 <option value="bottom">Underside (mounts below the roof)</option>
@@ -297,26 +292,43 @@
                     </fieldset>
 
                     <fieldset data-shape-only="circular rectangular strip">
+                        <legend>Tolerance</legend>
+                        <label>
+                            Tolerance <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Per-side clearance around the roof-mating pads so the printed part actually assembles. Opening dimensions stay exact. 0.010-0.020 in (0.25-0.5 mm) is a good FDM starting point.">?</span>
+                            <input type="number" name="tolerance" value="0.015" min="0" step="any" />
+                        </label>
+                    </fieldset>
+
+                    <fieldset data-shape-only="circular rectangular strip">
                         <legend>Bolt holes</legend>
                         <label class="toggle">
                             <input type="checkbox" name="bolt_holes" />
                             <span>Add bolt holes</span>
+                            <span class="hint-icon" data-tooltip="Subtract a bolt-hole pattern from the flange. Turn off if you'd rather drill the holes yourself after printing.">?</span>
                         </label>
                         <div data-bolts-only>
                             <label data-shape-only="circular">
-                                Bolt count
+                                Bolt count <span class="hint-icon" data-tooltip="Number of bolts evenly spaced on the bolt circle.">?</span>
                                 <input type="number" name="bolt_n_circ" value="8" min="1" step="1" />
                             </label>
-                            <label data-shape-only="circular rectangular">
-                                Offset from center <span class="unit-suffix">inches</span>
-                                <input type="number" name="bolt_offset" value="0" step="any" />
+                            <label data-shape-only="circular">
+                                Bolt-circle diameter <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Diameter of the circle the bolts sit on (pitch circle diameter, PCD). Must be between the inner diameter and outer diameter so the bolts land inside the ring.">?</span>
+                                <input type="number" name="bolt_pcd" value="8.25" min="0" step="any" />
                             </label>
                             <label data-shape-only="rectangular">
-                                Bolts per side
+                                Distance from inner edge <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Perpendicular distance from the inner rectangle to the bolt centers. Must be less than (outer - inner) / 2 so the bolts stay inside the ring on every side.">?</span>
+                                <input type="number" name="bolt_inner_distance" value="0.375" min="0" step="any" />
+                            </label>
+                            <label data-shape-only="circular">
+                                Rotation <span class="unit-suffix">degrees</span><span class="hint-icon" data-tooltip="Rotates the bolt circle around the flange center. Because bolts are evenly spaced, only rotations smaller than 360 / (bolt count) look different -- e.g. with 8 bolts, 45 / 90 / 135 degrees all look identical to 0. Try 22.5 with 8 bolts to see a half-slot shift.">?</span>
+                                <input type="number" name="bolt_angle" value="22.5" step="any" data-unitless />
+                            </label>
+                            <label data-shape-only="rectangular">
+                                Bolts per side <span class="hint-icon" data-tooltip="Bolts along each edge of the rectangle. Corners are shared: 2 = 4 corner bolts only, 3 = 8 bolts, 4 = 12, etc.">?</span>
                                 <input type="number" name="bolt_per_side" value="3" min="2" step="1" />
                             </label>
                             <label data-shape-only="strip">
-                                Bolts on
+                                Bolts on <span class="hint-icon" data-tooltip="Which roof features the strip's bolts land on. 'Ribs' fastens into the raised plateaus; 'indents' into the valleys; the every-other options halve the bolt count.">?</span>
                                 <select name="bolt_place">
                                     <option value="ribs">Every rib</option>
                                     <option value="indents">Every indent</option>
@@ -326,8 +338,8 @@
                                 </select>
                             </label>
                             <label>
-                                Bolt hole diameter <span class="unit-suffix">inches</span>
-                                <input type="number" name="bolt_hole_d" value="0.25" min="0" step="any" />
+                                Bolt hole diameter <span class="unit-suffix">inches</span><span class="hint-icon" data-tooltip="Through-hole diameter for each bolt. 0.25 in (~M6) is a common default; size to your fastener plus a bit of slop.">?</span>
+                                <input type="number" name="bolt_hole_d" value="0.3" min="0" step="any" />
                             </label>
                         </div>
                     </fieldset>

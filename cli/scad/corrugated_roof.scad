@@ -43,21 +43,50 @@ module corrugated_roof_cutter(
     cut_z             = 5,
     side              = "top",
     thickness         = 0.032,
-    samples_per_pitch = 64
+    samples_per_pitch = 64,
+    tolerance         = 0
 ) {
     z_shift = (side == "bottom") ? -thickness : 0;
+    // top_y is the tiny above-plateau overlap baked into the profile; used
+    // here as the plateau reference line for the tolerance clip.
+    top_y = 0.010;
     translate([0, 0, z_shift])
         rotate([90, 0, 0])
             linear_extrude(height = 2*cut_xy, center = true)
-                corrugated_roof_profile_2d(
-                    flange_offset_x      = flange_offset_x,
-                    pitch             = pitch,
-                    depth             = depth,
-                    cut_xy            = cut_xy,
-                    cut_z             = cut_z,
-                    side              = side,
-                    samples_per_pitch = samples_per_pitch
-                );
+                if (tolerance <= 0) {
+                    corrugated_roof_profile_2d(
+                        flange_offset_x      = flange_offset_x,
+                        pitch             = pitch,
+                        depth             = depth,
+                        cut_xy            = cut_xy,
+                        cut_z             = cut_z,
+                        side              = side,
+                        samples_per_pitch = samples_per_pitch
+                    );
+                } else {
+                    // Grow the cutter uniformly by `tolerance` normal to the
+                    // surface, then clip so the peak contact line stays put
+                    // -- otherwise the flange would float `tolerance` above
+                    // the wave crests.
+                    intersection() {
+                        offset(delta = tolerance)
+                            corrugated_roof_profile_2d(
+                                flange_offset_x      = flange_offset_x,
+                                pitch             = pitch,
+                                depth             = depth,
+                                cut_xy            = cut_xy,
+                                cut_z             = cut_z,
+                                side              = side,
+                                samples_per_pitch = samples_per_pitch
+                            );
+                        if (side == "top")
+                            translate([-2*cut_xy, -2*cut_z])
+                                square([4*cut_xy, 2*cut_z + top_y]);
+                        else
+                            translate([-2*cut_xy, top_y])
+                                square([4*cut_xy, 4*cut_z]);
+                    }
+                }
 }
 
 // The 2D cross-section of the cutter. `y = top_y` at the peak (rib plateau

@@ -37,7 +37,8 @@ body {
     color: var(--text);
     display: grid;
     grid-template-rows: auto 1fr;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
 }
 
 header {
@@ -169,13 +170,13 @@ header p {
 }
 
 .diagram-toggle {
-    margin: 0.5rem 0;
+    margin: 0.25rem 0 0 0;
 }
 .diagram-toggle > summary {
     cursor: pointer;
     color: var(--muted);
-    font-size: 0.85rem;
-    padding: 0.15rem 0;
+    font-size: 0.8rem;
+    padding: 0.1rem 0;
     user-select: none;
 }
 .diagram-toggle > summary:hover {
@@ -321,6 +322,26 @@ label.toggle input[type="checkbox"]:focus-visible {
     white-space: normal;
 }
 
+.toast.error {
+    border-color: rgba(214, 115, 115, 0.7);
+}
+.toast.error strong {
+    color: #ea8a8a;
+}
+
+.field-error {
+    display: block;
+    color: #ea8a8a;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    margin-top: 0.2rem;
+    min-height: 1em;
+}
+.field-error:empty {
+    margin-top: 0;
+    min-height: 0;
+}
+
 main {
     display: grid;
     grid-template-columns: 340px 1fr;
@@ -331,7 +352,27 @@ main {
     background: var(--panel);
     border-right: 1px solid var(--border);
     overflow-y: auto;
-    padding: 1rem;
+    padding: 0.6rem 0.75rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.controls::-webkit-scrollbar {
+    width: 8px;
+}
+.controls::-webkit-scrollbar-track {
+    background: transparent;
+}
+.controls::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+.controls::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+    background-clip: padding-box;
+    border: 2px solid transparent;
 }
 
 .viewer {
@@ -370,23 +411,116 @@ canvas#preview {
 fieldset {
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 0.75rem;
-    margin: 0 0 1rem 0;
+    padding: 0.35rem 0.6rem 0.5rem;
+    margin: 0 0 0.6rem 0;
     background: var(--panel-2);
 }
 
 legend {
-    padding: 0 0.5rem;
+    padding: 0 0.4rem;
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
 
+fieldset.collapsible > legend {
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+fieldset.collapsible > legend:hover {
+    color: var(--text);
+}
+fieldset.collapsible > legend::before {
+    content: "";
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+    transition: transform 0.15s ease;
+}
+fieldset.collapsible.collapsed > legend::before {
+    transform: rotate(-90deg);
+}
+fieldset.collapsible.collapsed > *:not(legend) {
+    display: none;
+}
+fieldset.collapsible.collapsed {
+    padding-bottom: 0.15rem;
+}
+
+fieldset .hint {
+    margin: 0 0 0.75rem 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.hint-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    margin-left: 0.25rem;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: default;
+    user-select: none;
+    vertical-align: middle;
+}
+
+.hint-icon:hover,
+.hint-icon:focus {
+    color: var(--text);
+    border-color: var(--text);
+}
+
+/* Shared floating tooltip element, appended to <body> so the .controls
+   pane's overflow: auto can't clip it. Positioned by JS in main.ts. */
+.hint-tooltip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    max-width: 260px;
+    padding: 0.5rem 0.65rem;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: normal;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.12s ease-out;
+    z-index: 1000;
+}
+
+.hint-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
 label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
     color: var(--text);
 }
 
@@ -394,13 +528,13 @@ label input,
 label select {
     display: block;
     width: 100%;
-    margin-top: 0.25rem;
-    padding: 0.4rem 0.5rem;
+    margin-top: 0.15rem;
+    padding: 0.3rem 0.45rem;
     background: var(--bg);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 4px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 label input:focus,
@@ -409,15 +543,23 @@ label select:focus {
     border-color: var(--accent);
 }
 
+label input:invalid {
+    border-color: #d67373;
+}
+label input:invalid:focus {
+    border-color: #d67373;
+    box-shadow: 0 0 0 2px rgba(214, 115, 115, 0.2);
+}
+
 .actions {
     display: flex;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 }
 
 button {
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.9rem;
     background: var(--accent);
     color: white;
     border: none;
@@ -449,11 +591,11 @@ button#download:hover:not(:disabled) {
 }
 
 .status {
-    margin: 1rem 0 0 0;
-    padding: 0.5rem;
+    margin: 0.5rem 0 0 0;
+    padding: 0.35rem 0.5rem;
     background: var(--bg);
     border-radius: 4px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--muted);
     min-height: 1.2em;
 }

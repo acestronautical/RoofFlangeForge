@@ -82,8 +82,8 @@ const STEP_IN: Record<string, number> = {
     rib_width: 0.125, indent_top_w: 0.125, indent_bot_w: 0.125,
     indent_depth: 0.0625, corner_r: 0.0625,
     corr_pitch: 0.125, corr_depth: 0.0625,
-    sheet_thickness: 0.001,
-    bolt_offset: 0.0625, bolt_hole_d: 0.03125,
+    tolerance: 0.005,
+    bolt_pcd: 0.25, bolt_inner_distance: 0.0625, bolt_hole_d: 0.03125,
 };
 const STEP_MM: Record<string, number> = {
     ID: 5, OD: 5,
@@ -94,8 +94,8 @@ const STEP_MM: Record<string, number> = {
     rib_width: 2, indent_top_w: 2, indent_bot_w: 2,
     indent_depth: 1, corner_r: 1,
     corr_pitch: 2, corr_depth: 1,
-    sheet_thickness: 0.05,
-    bolt_offset: 1, bolt_hole_d: 0.5,
+    tolerance: 0.1,
+    bolt_pcd: 5, bolt_inner_distance: 1, bolt_hole_d: 0.5,
 };
 function applyStepsForUnit(unit: Unit): void {
     const table = unit === "mm" ? STEP_MM : STEP_IN;
@@ -111,6 +111,8 @@ unitsSelect.addEventListener("change", () => {
     if (next === currentUnit) return;
     const ratio = next === "mm" ? MM_PER_IN : 1 / MM_PER_IN;
     form.querySelectorAll<HTMLInputElement>('input[type="number"]').forEach((input) => {
+        // data-unitless inputs (e.g. angles in degrees) shouldn't scale.
+        if (input.dataset.unitless !== undefined) return;
         const val = Number(input.value);
         if (!Number.isNaN(val)) input.value = String(round(val * ratio, 4));
     });
@@ -165,6 +167,86 @@ function syncShapeVisibility(): void {
 }
 shapeSelect.addEventListener("change", syncShapeVisibility);
 syncShapeVisibility();
+
+// Keep the bolt-position inputs' `min`/`max` in sync with the current shape
+// dimensions so :invalid styling flags out-of-range values before submit.
+// Circular uses PCD directly, so its bounds are [ID, OD]. Rectangular uses
+// distance-from-inner, bounded above by the narrowest ring width.
+const boltPcdInput = form.elements.namedItem("bolt_pcd") as HTMLInputElement | null;
+const boltInnerDistInput =
+    form.elements.namedItem("bolt_inner_distance") as HTMLInputElement | null;
+
+function syncBoltBounds(): void {
+    const shape = shapeSelect.value;
+    const data = new FormData(form);
+    const displayFactor = currentUnit === "mm" ? MM_PER_IN : 1;
+    if (shape === "circular" && boltPcdInput) {
+        const idIn = inches(data, "ID");
+        const odIn = inches(data, "OD");
+        if (idIn > 0 && odIn > idIn) {
+            boltPcdInput.min = String(round(idIn * displayFactor, 4));
+            boltPcdInput.max = String(round(odIn * displayFactor, 4));
+        } else {
+            boltPcdInput.removeAttribute("min");
+            boltPcdInput.removeAttribute("max");
+        }
+    }
+    if (shape === "rectangular" && boltInnerDistInput) {
+        const rx = (inches(data, "outer_x") - inches(data, "inner_x")) / 2;
+        const ry = (inches(data, "outer_y") - inches(data, "inner_y")) / 2;
+        const ring = Math.min(rx, ry);
+        if (Number.isFinite(ring) && ring > 0) {
+            boltInnerDistInput.max = String(round(ring * displayFactor, 4));
+        } else {
+            boltInnerDistInput.removeAttribute("max");
+        }
+    }
+    syncFieldErrors();
+}
+
+// Inline error message under each validated numeric input. Kept in the same
+// <label> so it can be hidden/disabled alongside the field when the shape
+// switches.
+function ensureFieldError(input: HTMLInputElement): HTMLSpanElement {
+    let err = input.parentElement?.querySelector<HTMLSpanElement>(":scope > .field-error");
+    if (!err && input.parentElement) {
+        err = document.createElement("span");
+        err.className = "field-error";
+        input.parentElement.appendChild(err);
+    }
+    return err as HTMLSpanElement;
+}
+function fieldErrorText(input: HTMLInputElement): string {
+    if (input.disabled || input.hidden) return "";
+    if (!input.value) return "";
+    const val = Number(input.value);
+    if (Number.isNaN(val)) return "";
+    const unitLabel = currentUnit === "mm" ? "mm" : "in";
+    if (input.max !== "" && val > Number(input.max)) {
+        return `Must be \u2264 ${input.max} ${unitLabel}`;
+    }
+    if (input.min !== "" && val < Number(input.min)) {
+        return `Must be \u2265 ${input.min} ${unitLabel}`;
+    }
+    return "";
+}
+function syncFieldErrors(): void {
+    for (const input of [boltPcdInput, boltInnerDistInput]) {
+        if (!input) continue;
+        const err = ensureFieldError(input);
+        err.textContent = fieldErrorText(input);
+    }
+}
+
+form.addEventListener("input", (ev) => {
+    const t = ev.target as HTMLElement;
+    if (t instanceof HTMLInputElement || t instanceof HTMLSelectElement) {
+        syncBoltBounds();
+    }
+});
+shapeSelect.addEventListener("change", syncBoltBounds);
+unitsSelect.addEventListener("change", syncBoltBounds);
+syncBoltBounds();
 
 // Show/hide fields that depend on the selected roof profile ------------------
 function syncRoofProfileVisibility(): void {
@@ -251,10 +333,16 @@ function buildJob(): RenderJob {
         };
     }
 
-    overrides.sheet_thickness = inches(data, "sheet_thickness");
+    // sheet_thickness is left at the SCAD default (0.032 in / ~0.8 mm, a
+    // typical stamped body panel) so the topside/underside sandwich has
+    // room for a real panel without adding another UI knob.
     overrides.main_thick = inches(data, "main_thick");
     overrides.flange_offset_x = flangeOffsetXInches(data);
     overrides.side = `"${String(data.get("side"))}"`;
+    // Tolerance is applied SCAD-side via offset() on the 2D cutter profile
+    // before the extrude, so the opening dimensions (ID/OD, inner/outer,
+    // strip size) are never scaled -- only the roof-mating pads shrink.
+    overrides.tolerance = inches(data, "tolerance");
 
     // Bolt-hole opt-in. Only pass shape-relevant params so we don't leak
     // circular fields into a rectangular render (or vice versa).
@@ -275,9 +363,11 @@ function buildJob(): RenderJob {
         overrides.OD = inches(data, "OD");
         if (boltsOn) {
             overrides.bolt_n = Number(data.get("bolt_n_circ"));
-            // Bolt circle sits at the ring centerline plus a signed radial offset.
-            const ringMidR = ((overrides.ID as number) + (overrides.OD as number)) / 4;
-            overrides.bolt_pcd = 2 * (ringMidR + inches(data, "bolt_offset"));
+            // The user enters the bolt-circle diameter (PCD) directly, in
+            // the same units as ID/OD -- no radial-vs-diametral math.
+            overrides.bolt_pcd = inches(data, "bolt_pcd");
+            const angle = Number(data.get("bolt_angle"));
+            if (!Number.isNaN(angle) && angle !== 0) overrides.bolt_angle = angle;
         }
         return {
             scad: "circular_adapter.scad",
@@ -303,10 +393,10 @@ function buildJob(): RenderJob {
     overrides.outer_y = inches(data, "outer_y");
     if (boltsOn) {
         overrides.bolt_per_side = Number(data.get("bolt_per_side"));
-        // Bolt line sits on the ring centerline (edge_inset = ringWidth / 2)
-        // shifted outward by the signed offset (smaller inset = further from center).
-        const ringWidth = (overrides.outer_x as number) - (overrides.inner_x as number);
-        overrides.bolt_edge_inset = ringWidth / 4 - inches(data, "bolt_offset");
+        // SCAD's bolt_edge_inset is measured from the OUTER edge; convert
+        // from the user-facing distance-from-inner-edge value.
+        const ringWidth = ((overrides.outer_x as number) - (overrides.inner_x as number)) / 2;
+        overrides.bolt_edge_inset = ringWidth - inches(data, "bolt_inner_distance");
     }
     return {
         scad: "rectangular_adapter.scad",
@@ -323,6 +413,24 @@ function formatDims(xMm: number, yMm: number, zMm: number): string {
 // Submit --------------------------------------------------------------------
 form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    // Bolts opt-in; only validate the position input for the currently active
+    // shape's field.
+    const boltsOn = boltHolesInput.checked;
+    const shape = shapeSelect.value;
+    const validate: HTMLInputElement | null = !boltsOn
+        ? null
+        : shape === "circular" ? boltPcdInput
+        : shape === "rectangular" ? boltInnerDistInput
+        : null;
+    if (validate && !validate.checkValidity()) {
+        const firstTextNode = Array.from(validate.parentElement?.childNodes ?? [])
+            .find((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim());
+        const label = firstTextNode?.textContent?.trim() ?? validate.name;
+        const detail = fieldErrorText(validate) || "value is out of range";
+        showToast(`${label}: ${detail}`, "Fix the highlighted field and try again.", 3600, "error");
+        validate.focus();
+        return;
+    }
     renderBtn.disabled = true;
     downloadBtn.disabled = true;
     const t0 = startRenderProgress();
@@ -424,6 +532,90 @@ function applyParamsFromUrl(): void {
 }
 applyParamsFromUrl();
 
+// Collapsible fieldsets ----------------------------------------------------
+// Click a fieldset's legend to collapse/expand its contents. State is
+// keyed by the legend text and persisted in localStorage so the layout
+// sticks across reloads.
+const COLLAPSED_KEY = "collapsedFieldsets";
+let collapsedFieldsets = new Set<string>();
+try {
+    const raw = localStorage.getItem(COLLAPSED_KEY);
+    if (raw) collapsedFieldsets = new Set(JSON.parse(raw) as string[]);
+} catch { /* ignore malformed storage */ }
+
+function saveCollapsedFieldsets(): void {
+    try {
+        localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsedFieldsets]));
+    } catch { /* quota / private mode - fine to skip */ }
+}
+
+form.querySelectorAll<HTMLFieldSetElement>("fieldset").forEach((fs) => {
+    const legend = fs.querySelector<HTMLLegendElement>(":scope > legend");
+    if (!legend) return;
+    fs.classList.add("collapsible");
+    const key = legend.textContent?.trim() ?? "";
+    if (collapsedFieldsets.has(key)) fs.classList.add("collapsed");
+    legend.setAttribute("role", "button");
+    legend.setAttribute("tabindex", "0");
+    legend.setAttribute("aria-expanded", fs.classList.contains("collapsed") ? "false" : "true");
+    const toggle = (): void => {
+        const nowCollapsed = fs.classList.toggle("collapsed");
+        legend.setAttribute("aria-expanded", nowCollapsed ? "false" : "true");
+        if (nowCollapsed) collapsedFieldsets.add(key);
+        else collapsedFieldsets.delete(key);
+        saveCollapsedFieldsets();
+    };
+    legend.addEventListener("click", toggle);
+    legend.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            toggle();
+        }
+    });
+});
+
+// Hint tooltips ------------------------------------------------------------
+// A single tooltip element is appended to <body> so it escapes the .controls
+// pane's overflow: auto clipping. Position is recomputed on each hover and
+// clamped to the viewport (flipped below the icon if it doesn't fit above).
+const hintTooltip = document.createElement("div");
+hintTooltip.className = "hint-tooltip";
+hintTooltip.setAttribute("role", "tooltip");
+document.body.appendChild(hintTooltip);
+
+function showHint(icon: HTMLElement): void {
+    const text = icon.dataset.tooltip ?? "";
+    if (!text) return;
+    hintTooltip.textContent = text;
+    hintTooltip.classList.add("visible");
+    const iconRect = icon.getBoundingClientRect();
+    const tipRect = hintTooltip.getBoundingClientRect();
+    const gap = 8;
+    const margin = 8;
+    let x = iconRect.left + iconRect.width / 2 - tipRect.width / 2;
+    x = Math.max(margin, Math.min(x, window.innerWidth - tipRect.width - margin));
+    let y = iconRect.top - tipRect.height - gap;
+    if (y < margin) y = iconRect.bottom + gap;
+    hintTooltip.style.transform = `translate(${x}px, ${y}px)`;
+}
+
+function hideHint(): void {
+    hintTooltip.classList.remove("visible");
+}
+
+document.body.addEventListener("mouseover", (ev) => {
+    const icon = (ev.target as HTMLElement).closest<HTMLElement>(".hint-icon");
+    if (icon) showHint(icon);
+});
+document.body.addEventListener("mouseout", (ev) => {
+    if ((ev.target as HTMLElement).closest(".hint-icon")) hideHint();
+});
+document.body.addEventListener("focusin", (ev) => {
+    const icon = (ev.target as HTMLElement).closest<HTMLElement>(".hint-icon");
+    if (icon) showHint(icon);
+});
+document.body.addEventListener("focusout", hideHint);
+
 // If the URL carries `render=1`, kick off a render automatically so a
 // shared link reproduces the STL without a manual click. The submit path is
 // what wires up the progress ticker and download button, so use it directly.
@@ -469,13 +661,19 @@ shareBtn.addEventListener("click", async () => {
 });
 
 let toastTimer: number | null = null;
-function showToast(title: string, body: string, durationMs = 2400): void {
+function showToast(
+    title: string,
+    body: string,
+    durationMs = 2400,
+    variant: "info" | "error" = "info",
+): void {
     toast.innerHTML = "";
     const strong = document.createElement("strong");
     strong.textContent = title;
     const code = document.createElement("code");
     code.textContent = body;
     toast.append(strong, code);
+    toast.classList.toggle("error", variant === "error");
     toast.hidden = false;
     // Force a reflow so the transition kicks in.
     void toast.offsetWidth;

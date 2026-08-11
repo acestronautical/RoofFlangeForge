@@ -37,6 +37,14 @@ flange_offset_x = 0;                         // 0 = rib-centered; indent_center_
 side         = "top";                     // "top" (outside), "bottom" (inside), or "both" (both sides side by side)
 
 // -----------------------------------------------------------------------------
+// Fit tolerance: uniform clearance normal to the roof surface. Grows the
+// cutter (via offset() before extrusion) so the printed pads sit in the
+// real indents with slop instead of an exact-fit wedge. The plateau contact
+// line is preserved via an intersection clip -- see trapezoidal_roof.scad.
+// -----------------------------------------------------------------------------
+tolerance   = 0;                          // per-side clearance around the roof-mating features
+
+// -----------------------------------------------------------------------------
 // Bolt holes (opt-in). See bolt_pattern.scad.
 // -----------------------------------------------------------------------------
 bolt_holes  = false;                      // set true to subtract a bolt pattern
@@ -136,7 +144,8 @@ module roof_cutter(s = side) {
             cut_xy       = cut_xy,
             cut_z        = cut_z,
             side         = s,
-            thickness    = sheet_thickness
+            thickness    = sheet_thickness,
+            tolerance    = tolerance
         );
     else
         trapezoidal_roof_cutter(
@@ -144,6 +153,7 @@ module roof_cutter(s = side) {
             cut_xy       = cut_xy,
             cut_z        = cut_z,
             side         = s,
-            thickness    = sheet_thickness
+            thickness    = sheet_thickness,
+            tolerance    = tolerance
         );
 }

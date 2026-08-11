@@ -68,25 +68,55 @@ module trapezoidal_roof_cutter(
     cut_xy       = 40,
     cut_z        = 5,
     side         = "top",
-    thickness    = sheet_thickness
+    thickness    = sheet_thickness,
+    tolerance    = 0
 ) {
     // The bottom cutter aligns with the roof's BOTTOM face (offset down from
     // the top face by the sheet-metal gauge), so top+bottom cutters leave a
     // sheet-thickness gap between them where the physical roof lives.
     z_shift = (side == "bottom") ? -thickness : 0;
+    // top_y is the tiny above-plateau overlap baked into the profile; used
+    // here as the plateau reference line for the tolerance clip.
+    top_y = 0.010;
     translate([0, 0, z_shift])
         rotate([90, 0, 0])
             linear_extrude(height = 2*cut_xy, center = true)
-                trapezoidal_roof_profile_2d(
-                    flange_offset_x = flange_offset_x,
-                    top_w        = top_w,
-                    bot_w        = bot_w,
-                    depth        = depth,
-                    corner_r     = r,
-                    cut_xy       = cut_xy,
-                    cut_z        = cut_z,
-                    side         = side
-                );
+                if (tolerance <= 0) {
+                    trapezoidal_roof_profile_2d(
+                        flange_offset_x = flange_offset_x,
+                        top_w        = top_w,
+                        bot_w        = bot_w,
+                        depth        = depth,
+                        corner_r     = r,
+                        cut_xy       = cut_xy,
+                        cut_z        = cut_z,
+                        side         = side
+                    );
+                } else {
+                    // Grow the cutter uniformly by `tolerance` normal to the
+                    // surface, then clip so the plateau contact line stays
+                    // put -- otherwise the flange would float `tolerance`
+                    // above the rib peaks.
+                    intersection() {
+                        offset(delta = tolerance)
+                            trapezoidal_roof_profile_2d(
+                                flange_offset_x = flange_offset_x,
+                                top_w        = top_w,
+                                bot_w        = bot_w,
+                                depth        = depth,
+                                corner_r     = r,
+                                cut_xy       = cut_xy,
+                                cut_z        = cut_z,
+                                side         = side
+                            );
+                        if (side == "top")
+                            translate([-2*cut_xy, -2*cut_z])
+                                square([4*cut_xy, 2*cut_z + top_y]);
+                        else
+                            translate([-2*cut_xy, top_y])
+                                square([4*cut_xy, 4*cut_z]);
+                    }
+                }
 }
 
 // The 2D cross-section of the cutter. Interior of the polygon = block material.
