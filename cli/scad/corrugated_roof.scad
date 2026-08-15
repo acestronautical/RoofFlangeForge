@@ -63,11 +63,7 @@ module corrugated_roof_cutter(
                         side              = side,
                         samples_per_pitch = samples_per_pitch
                     );
-                } else {
-                    // Grow the cutter uniformly by `tolerance` normal to the
-                    // surface, then clip so the peak contact line stays put
-                    // -- otherwise the flange would float `tolerance` above
-                    // the wave crests.
+                } else if (side == "top") {
                     intersection() {
                         offset(delta = tolerance)
                             corrugated_roof_profile_2d(
@@ -76,15 +72,47 @@ module corrugated_roof_cutter(
                                 depth             = depth,
                                 cut_xy            = cut_xy,
                                 cut_z             = cut_z,
-                                side              = side,
+                                side              = "top",
                                 samples_per_pitch = samples_per_pitch
                             );
-                        if (side == "top")
-                            translate([-2*cut_xy, -2*cut_z])
-                                square([4*cut_xy, 2*cut_z + top_y]);
-                        else
+                        translate([-2*cut_xy, -2*cut_z])
+                            square([4*cut_xy, 2*cut_z + top_y]);
+                    }
+                } else {
+                    // See trapezoidal_roof_cutter for the rationale: for the
+                    // bottom side we can't just clip the offset polygon,
+                    // because the trough pockets live below the plateau
+                    // line and a symmetric clip would erase them. Union the
+                    // above-plateau slice of the offset with an offset of
+                    // just the below-plateau trough bulges instead.
+                    union() {
+                        intersection() {
+                            offset(delta = tolerance)
+                                corrugated_roof_profile_2d(
+                                    flange_offset_x      = flange_offset_x,
+                                    pitch             = pitch,
+                                    depth             = depth,
+                                    cut_xy            = cut_xy,
+                                    cut_z             = cut_z,
+                                    side              = "bottom",
+                                    samples_per_pitch = samples_per_pitch
+                                );
                             translate([-2*cut_xy, top_y])
                                 square([4*cut_xy, 4*cut_z]);
+                        }
+                        offset(delta = tolerance) intersection() {
+                            corrugated_roof_profile_2d(
+                                flange_offset_x      = flange_offset_x,
+                                pitch             = pitch,
+                                depth             = depth,
+                                cut_xy            = cut_xy,
+                                cut_z             = cut_z,
+                                side              = "bottom",
+                                samples_per_pitch = samples_per_pitch
+                            );
+                            translate([-2*cut_xy, -2*cut_z])
+                                square([4*cut_xy, 2*cut_z + top_y]);
+                        }
                     }
                 }
 }

@@ -92,11 +92,10 @@ module trapezoidal_roof_cutter(
                         cut_z        = cut_z,
                         side         = side
                     );
-                } else {
-                    // Grow the cutter uniformly by `tolerance` normal to the
-                    // surface, then clip so the plateau contact line stays
-                    // put -- otherwise the flange would float `tolerance`
-                    // above the rib peaks.
+                } else if (side == "top") {
+                    // Cutter interior is BELOW the surface; offset pushes it
+                    // upward, so clip anything that ends up above the plateau
+                    // line to preserve the plateau contact face.
                     intersection() {
                         offset(delta = tolerance)
                             trapezoidal_roof_profile_2d(
@@ -107,14 +106,53 @@ module trapezoidal_roof_cutter(
                                 corner_r     = r,
                                 cut_xy       = cut_xy,
                                 cut_z        = cut_z,
-                                side         = side
+                                side         = "top"
                             );
-                        if (side == "top")
-                            translate([-2*cut_xy, -2*cut_z])
-                                square([4*cut_xy, 2*cut_z + top_y]);
-                        else
+                        translate([-2*cut_xy, -2*cut_z])
+                            square([4*cut_xy, 2*cut_z + top_y]);
+                    }
+                } else {
+                    // Cutter interior is ABOVE the surface; offset pushes the
+                    // surface downward. A symmetric clip at y=top_y would wipe
+                    // out the indent pockets (which live below the plateau
+                    // line at indent-x). Instead, union two pieces:
+                    //   (1) offset polygon clipped to y >= top_y (preserves
+                    //       plateau, drops the tolerance-strip that would
+                    //       cut into the block's plateau face), and
+                    //   (2) offset applied ONLY to the parts of the original
+                    //       polygon that dipped below the plateau (the indent
+                    //       bulges) so pockets get deeper by tolerance and
+                    //       walls widen by tolerance per side.
+                    union() {
+                        intersection() {
+                            offset(delta = tolerance)
+                                trapezoidal_roof_profile_2d(
+                                    flange_offset_x = flange_offset_x,
+                                    top_w        = top_w,
+                                    bot_w        = bot_w,
+                                    depth        = depth,
+                                    corner_r     = r,
+                                    cut_xy       = cut_xy,
+                                    cut_z        = cut_z,
+                                    side         = "bottom"
+                                );
                             translate([-2*cut_xy, top_y])
                                 square([4*cut_xy, 4*cut_z]);
+                        }
+                        offset(delta = tolerance) intersection() {
+                            trapezoidal_roof_profile_2d(
+                                flange_offset_x = flange_offset_x,
+                                top_w        = top_w,
+                                bot_w        = bot_w,
+                                depth        = depth,
+                                corner_r     = r,
+                                cut_xy       = cut_xy,
+                                cut_z        = cut_z,
+                                side         = "bottom"
+                            );
+                            translate([-2*cut_xy, -2*cut_z])
+                                square([4*cut_xy, 2*cut_z + top_y]);
+                        }
                     }
                 }
 }
