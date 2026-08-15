@@ -432,9 +432,44 @@ function formatDims(xMm: number, yMm: number, zMm: number): string {
     return `Model: ${f(xMm)} \u00d7 ${f(yMm)} \u00d7 ${f(zMm)}  (${xMm.toFixed(1)} \u00d7 ${yMm.toFixed(1)} \u00d7 ${zMm.toFixed(1)} mm)`;
 }
 
+// Auto-render with debouncing ---------------------------------------------
+// Any form change starts a debounce timer. When it fires, a render is
+// dispatched via requestSubmit(). If a render is already running, we mark
+// a re-render as pending and fire it once the current one finishes.
+const AUTO_RENDER_DEBOUNCE_MS = 500;
+let autoRenderTimer: number | null = null;
+let isRendering = false;
+let pendingRerender = false;
+let autoRenderInFlight = false;
+
+function scheduleAutoRender(): void {
+    if (autoRenderTimer !== null) clearTimeout(autoRenderTimer);
+    autoRenderTimer = window.setTimeout(() => {
+        autoRenderTimer = null;
+        if (isRendering) {
+            pendingRerender = true;
+            return;
+        }
+        autoRenderInFlight = true;
+        form.requestSubmit();
+    }, AUTO_RENDER_DEBOUNCE_MS);
+}
+
+form.addEventListener("input", (ev) => {
+    // Skip if a field-error was just typed into (invalid field re-render
+    // would just refuse). Silent skip is handled inside the submit path.
+    void ev;
+    scheduleAutoRender();
+});
+form.addEventListener("change", scheduleAutoRender);
+
 // Submit --------------------------------------------------------------------
 form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    // Distinguish manual Render click from a debounced auto-render so the
+    // out-of-range toast only appears when the user explicitly asked for it.
+    const isAuto = autoRenderInFlight;
+    autoRenderInFlight = false;
     // Bolts opt-in; only validate the position input for the currently active
     // shape's field.
     const boltsOn = boltHolesInput.checked;
@@ -445,14 +480,17 @@ form.addEventListener("submit", async (ev) => {
         : shape === "rectangular" ? boltInnerDistInput
         : null;
     if (validate && !validate.checkValidity()) {
-        const firstTextNode = Array.from(validate.parentElement?.childNodes ?? [])
-            .find((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim());
-        const label = firstTextNode?.textContent?.trim() ?? validate.name;
-        const detail = fieldErrorText(validate) || "value is out of range";
-        showToast(`${label}: ${detail}`, "Fix the highlighted field and try again.", 3600, "error");
-        validate.focus();
+        if (!isAuto) {
+            const firstTextNode = Array.from(validate.parentElement?.childNodes ?? [])
+                .find((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim());
+            const label = firstTextNode?.textContent?.trim() ?? validate.name;
+            const detail = fieldErrorText(validate) || "value is out of range";
+            showToast(`${label}: ${detail}`, "Fix the highlighted field and try again.", 3600, "error");
+            validate.focus();
+        }
         return;
     }
+    isRendering = true;
     renderBtn.disabled = true;
     downloadBtn.disabled = true;
     const t0 = startRenderProgress();
@@ -473,6 +511,12 @@ form.addEventListener("submit", async (ev) => {
         status.textContent = `Error: ${(err as Error).message}`;
     } finally {
         renderBtn.disabled = false;
+        isRendering = false;
+        // If the user tweaked something during the render, run another.
+        if (pendingRerender) {
+            pendingRerender = false;
+            scheduleAutoRender();
+        }
     }
 });
 
